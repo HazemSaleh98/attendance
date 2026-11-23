@@ -210,6 +210,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial
 .att-schedbtns { display: flex; gap: 6px; }
 .att-schedbtn { font-size: 12px; padding: 6px 10px; }
 .att-schedhint { font-size: 11px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+.att-iconrow { display: flex; align-items: center; gap: 12px; }
+.att-iconprev { width: 48px; height: 48px; border-radius: 12px; border: 1px solid var(--line); }
 .att-hint { font-size: 12px; color: var(--ink2); line-height: 1.7; margin-top: 8px; }
 .att-restore {
     width: 100%; margin-top: 10px; padding: 10px 12px; font: inherit; font-size: 13px; color: var(--ink);
@@ -297,6 +299,8 @@ var STR = {
         clear: 'مسح', confirmClear: 'تأكيد المسح؟', close: 'قفل',
         nightNote: 'بيتحسب يوم واحد على نفس اليوم',
         sched: 'أيام الشغل', schedHint: 'دوس صباحي أو ليلي جنب كل يوم. لو دوست على النوع اللي متعلم، اليوم بيبقى أجازة.',
+        iconSec: 'أيقونة التطبيق', iconChange: 'غيّر الأيقونة', iconReset: 'رجوع للأيقونة الأصلية',
+        iconHint: 'بعد ما تغيّرها: شيل التطبيق من الشاشة الرئيسية وضيفه تاني من Safari عشان الأيقونة الجديدة تظهر.', iconSaved: 'الأيقونة اتغيّرت ✅',
         extraNote: 'يوم مش من أيامك، بيتحسب شيفت بدل',
         needTime: 'سجل وقت حضور أو انصراف الأول',
         backup: 'نسخة احتياطية',
@@ -339,6 +343,8 @@ var STR = {
         clear: 'Clear', confirmClear: 'Confirm clear?', close: 'Close',
         nightNote: 'counts once, on that day',
         sched: 'Work days', schedHint: 'Tap Day or Night next to each weekday. Tap the active one to make it a day off.',
+        iconSec: 'App icon', iconChange: 'Change icon', iconReset: 'Back to the original icon',
+        iconHint: 'After changing it: remove the app from your home screen and add it again from Safari for the new icon to show.', iconSaved: 'Icon updated ✅',
         extraNote: 'not one of your days, counts as a swap',
         needTime: 'Enter a check-in or check-out time first',
         backup: 'Backup',
@@ -379,6 +385,9 @@ var viewStart = cycleStartFor(new Date());
 var openKey = null;
 var backupOpen = false;
 var schedOpen = false;
+var iconOpen = false;
+var iconMsg = '';
+var customIcon = loadLS('attendance.icon.v1', null);
 var restoreText = '';
 var msg = '';
 var ed = null; // editor state {ci, co, col, confirmClear, err}
@@ -419,6 +428,58 @@ function setPrefs(p) {
     saveLS('attendance.prefs.v1', prefs);
     render();
 }
+
+/* ---------- custom app icon ---------- */
+function applyCustomIcon(set) {
+    try {
+        var sizes = { 'icon-180.png': set.i180, 'icon-192.png': set.i192, 'icon-512.png': set.i512, 'icon-maskable-512.png': set.i512m };
+        if ('caches' in window) {
+            caches.open('attendance-custom-icons').then(function (c) {
+                Object.keys(sizes).forEach(function (name) {
+                    c.put(name, new Response(dataUrlToBlob(sizes[name]), { headers: { 'Content-Type': 'image/png' } }));
+                });
+            });
+        }
+        var fav = document.querySelector('link[rel="icon"]');
+        if (fav) fav.href = set.i192;
+        var apple = document.querySelector('link[rel="apple-touch-icon"]');
+        if (apple) apple.href = set.i180;
+        var man = document.querySelector('link[rel="manifest"]');
+        if (man) {
+            var base = { name: '\u062d\u0636\u0648\u0631 \u0648\u0627\u0646\u0635\u0631\u0627\u0641', short_name: '\u062d\u0636\u0648\u0631', start_url: '.', scope: '.', display: 'standalone', dir: 'rtl', lang: 'ar', background_color: '#0d131c', theme_color: '#0d131c' };
+            base.icons = [
+                { src: set.i192, sizes: '192x192', type: 'image/png' },
+                { src: set.i512, sizes: '512x512', type: 'image/png' },
+                { src: set.i512m, sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+            ];
+            man.href = URL.createObjectURL(new Blob([JSON.stringify(base)], { type: 'application/manifest+json' }));
+        }
+    } catch (e) {}
+}
+function dataUrlToBlob(d) {
+    var parts = d.split(','), mime = parts[0].match(/:(.*?);/)[1];
+    var bin = atob(parts[1]), arr = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return new Blob([arr], { type: mime });
+}
+function makeIcons(file, cb) {
+    var img = new Image();
+    img.onload = function () {
+        var s = Math.min(img.width, img.height);
+        function draw(size, pad) {
+            var cv = document.createElement('canvas');
+            cv.width = size; cv.height = size;
+            var cx = cv.getContext('2d');
+            cx.fillStyle = '#ffffff'; cx.fillRect(0, 0, size, size);
+            var inner = size * (1 - 2 * pad), off = size * pad;
+            cx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, off, off, inner, inner);
+            return cv.toDataURL('image/png');
+        }
+        cb({ i180: draw(180, 0.04), i192: draw(192, 0.04), i512: draw(512, 0.04), i512m: draw(512, 0.1) });
+    };
+    img.src = URL.createObjectURL(file);
+}
+if (customIcon) applyCustomIcon(customIcon);
 
 /* ---------- render ---------- */
 function render() {
@@ -568,6 +629,20 @@ function render() {
         html += '</div>';
     }
 
+    /* app icon */
+    html += '<button type="button" class="att-section att-section-toggle" data-act="iconsec" aria-expanded="' + iconOpen + '">';
+    html += '<span class="' + (iconOpen ? 'att-caret att-caret-open' : 'att-caret') + '">▾</span>' + esc(t.iconSec) + '</button>';
+    if (iconOpen) {
+        var curIcon = customIcon ? customIcon.i192 : 'icon-192.png';
+        html += '<div class="att-card">';
+        html += '<div class="att-iconrow"><img class="att-iconprev" src="' + curIcon + '" alt=""><button type="button" class="att-btn att-soft att-flex" data-act="iconpick">' + esc(t.iconChange) + '</button></div>';
+        html += '<input type="file" id="ed-icon" accept="image/*" style="display:none">';
+        if (customIcon) html += '<div class="att-btnrow"><button type="button" class="att-btn att-ghost" data-act="iconreset">' + esc(t.iconReset) + '</button></div>';
+        html += '<div class="att-schedhint">' + esc(t.iconHint) + '</div>';
+        if (iconMsg) html += '<div class="att-hint">' + esc(iconMsg) + '</div>';
+        html += '</div>';
+    }
+
     /* editor */
     if (openCell) {
         var record = records[openCell.key];
@@ -658,6 +733,18 @@ function render() {
     if (coEl) coEl.addEventListener('input', function () { ed.co = coEl.value; ed.err = ''; refreshDuration(); });
     if (colEl) colEl.addEventListener('input', function () { ed.col = colEl.value; });
     if (rsEl) rsEl.addEventListener('input', function () { restoreText = rsEl.value; });
+    var fiEl = document.getElementById('ed-icon');
+    if (fiEl) fiEl.addEventListener('change', function () {
+        var f = fiEl.files && fiEl.files[0];
+        if (!f) return;
+        makeIcons(f, function (set) {
+            customIcon = set;
+            saveLS('attendance.icon.v1', set);
+            applyCustomIcon(set);
+            iconMsg = t.iconSaved;
+            render();
+        });
+    });
 
     /* wire buttons */
     root.querySelectorAll('[data-act]').forEach(function (btn) {
@@ -687,6 +774,14 @@ function render() {
             else if (act === 'doclear') { saveRecord(openKey, null); }
             else if (act === 'backup') { backupOpen = !backupOpen; render(); }
             else if (act === 'sched') { schedOpen = !schedOpen; render(); }
+            else if (act === 'iconsec') { iconOpen = !iconOpen; render(); }
+            else if (act === 'iconpick') { var fi = document.getElementById('ed-icon'); if (fi) fi.click(); }
+            else if (act === 'iconreset') {
+                customIcon = null;
+                try { localStorage.removeItem('attendance.icon.v1'); } catch (e) {}
+                if ('caches' in window) caches.delete('attendance-custom-icons');
+                location.reload();
+            }
             else if (act === 'schedset') {
                 var p = {};
                 Object.keys(prefs.pattern).forEach(function (dk) { p[dk] = prefs.pattern[dk]; });
