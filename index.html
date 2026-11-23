@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d131c">
+<title>حضور وانصراف</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>">
+<style>
+html, body { margin: 0; min-height: 100%; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, sans-serif; }
+
+.att-root {
+    --bg: #f4f2f0;
+    --surface: #ffffff;
+    --surface2: #f0edeb;
+    --ink: #251f21;
+    --ink2: #6f6a6c;
+    --line: #eae9ea;
+    --accent: #0f9d8a;
+    --accent2: #0284c7;
+    --good: #0f9d8a;
+    --warn: #b45309;
+    --info: #6d28d9;
+    --danger: #dc2626;
+    --onaccent: #ffffff;
+    --daytint: rgba(245, 158, 11, .16);
+    --dayline: rgba(245, 158, 11, .45);
+    --nighttint: rgba(99, 102, 241, .14);
+    --nightline: rgba(99, 102, 241, .45);
+    color-scheme: light;
+    background: var(--bg);
+    color: var(--ink);
+    padding: 20px 16px 28px;
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: max(28px, env(safe-area-inset-bottom));
+    min-height: 100vh;
+    box-sizing: border-box;
+    max-width: 600px;
+    margin: 0 auto;
+    transition: background .3s, color .3s;
+}
+.att-root[data-theme="dark"] {
+    --bg: #0d131c;
+    --surface: #161e2b;
+    --surface2: #1e2837;
+    --ink: #eef2f9;
+    --ink2: #93a1bd;
+    --line: #2a3547;
+    --accent: #2dd4a7;
+    --accent2: #38bdf8;
+    --good: #34d399;
+    --warn: #fbbf24;
+    --info: #a78bfa;
+    --danger: #f87171;
+    --onaccent: #06281f;
+    --daytint: rgba(245, 158, 11, .18);
+    --dayline: rgba(245, 158, 11, .5);
+    --nighttint: rgba(99, 102, 241, .22);
+    --nightline: rgba(129, 140, 248, .5);
+    color-scheme: dark;
+}
+@media (min-width: 768px) {
+    .att-root { padding: 32px 28px 40px; }
+    .att-monthblock { max-width: 560px; }
+}
+
+/* hero */
+.att-hero {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 20px;
+    padding: 18px 18px 16px;
+    color: var(--onaccent);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
+}
+.att-hero-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.att-hero-title { font-size: 21px; font-weight: 700; letter-spacing: -.01em; }
+.att-toggles { display: flex; gap: 8px; }
+.att-toggle {
+    min-width: 44px; min-height: 36px; padding: 4px 12px;
+    border-radius: 99px; border: 1px solid rgba(255, 255, 255, .45);
+    background: rgba(255, 255, 255, .16); color: #fff; font: inherit; font-weight: 700; font-size: 13px;
+    cursor: pointer; transition: background .2s, transform .08s;
+}
+.att-toggle:active { transform: scale(.94); }
+.att-hero-sub { margin-top: 4px; font-size: 13px; opacity: .92; font-weight: 600; }
+.att-monthrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 14px; }
+.att-month { font-size: 14px; font-weight: 700; }
+.att-navbtn {
+    min-width: 40px; min-height: 36px; border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, .45); background: rgba(255, 255, 255, .16);
+    color: #fff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer;
+    transition: background .2s, transform .08s;
+}
+.att-navbtn:active { transform: scale(.94); }
+.att-progress { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .28); overflow: hidden; margin-top: 12px; }
+.att-progress > div { height: 100%; border-radius: 99px; background: #fff; transition: width .35s ease; }
+.att-progress-label { margin-top: 6px; font-size: 12px; font-weight: 600; opacity: .95; }
+
+/* stats */
+.att-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+.att-stat {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 12px 6px; text-align: center; transition: background .3s;
+}
+.att-stat-num { font-size: 20px; font-weight: 800; line-height: 1.15; }
+.att-stat-label { font-size: 11px; color: var(--ink2); margin-top: 2px; }
+.att-tone-base { color: var(--ink); }
+.att-tone-good { color: var(--good); }
+.att-tone-warn { color: var(--warn); }
+.att-tone-info { color: var(--info); }
+
+/* calendar */
+.att-taphint { font-size: 12px; color: var(--ink2); margin: 18px 2px 8px; text-align: center; }
+.att-monthblock { margin-bottom: 12px; }
+.att-monthtitle { font-size: 14px; font-weight: 700; margin: 6px 2px 8px; }
+.att-weekrow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 6px; }
+.att-weekday { text-align: center; font-size: 11px; font-weight: 700; color: var(--ink2); }
+.att-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.att-cell {
+    aspect-ratio: 1; border-radius: 14px; border: 1px solid transparent;
+    background: transparent; color: var(--ink);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+    font: inherit; cursor: pointer; padding: 2px;
+    transition: transform .08s, background .2s, border-color .2s;
+}
+.att-cell:active { transform: scale(.92); }
+.att-c-blank { background: transparent; border: none; cursor: default; aspect-ratio: 1; }
+.att-c-off { color: var(--ink2); opacity: .5; }
+.att-c-day { background: var(--daytint); border-color: var(--dayline); }
+.att-c-night { background: var(--nighttint); border-color: var(--nightline); }
+.att-c-today { box-shadow: inset 0 0 0 2px var(--accent); }
+.att-c-open { box-shadow: inset 0 0 0 2px var(--accent); }
+.att-cellnum { font-size: 14px; font-weight: 700; line-height: 1.1; }
+.att-cellmark { font-size: 9px; line-height: 1.1; min-height: 10px; }
+.att-c-worked { background: var(--accent); border-color: var(--accent); color: var(--onaccent); }
+.att-c-worked .att-cellmark { color: var(--onaccent); }
+.att-c-short { background: var(--daytint); border-color: var(--warn); }
+.att-c-short .att-cellmark { color: var(--warn); font-weight: 700; }
+.att-c-checked { background: transparent; border-color: var(--accent); color: var(--accent); }
+.att-c-sick { background: var(--surface2); border-color: var(--warn); }
+.att-c-swap { background: var(--surface2); border-color: var(--info); }
+
+.att-legend { display: flex; gap: 16px; justify-content: center; margin: 10px 0 4px; }
+.att-leg { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink2); font-weight: 600; }
+.att-dot { width: 12px; height: 12px; border-radius: 4px; display: inline-block; }
+.att-d-day { background: var(--daytint); border: 1px solid var(--dayline); }
+.att-d-night { background: var(--nighttint); border: 1px solid var(--nightline); }
+
+/* editor */
+.att-editor {
+    border: 1px solid var(--accent); border-radius: 14px; padding: 14px 12px; margin: 10px 0 8px;
+    background: var(--surface); animation: att-rise .22s ease both; transition: background .3s;
+}
+.att-editor-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.att-editor-title { font-size: 15px; font-weight: 700; }
+.att-editor-sub { font-size: 12px; color: var(--ink2); margin-top: 2px; }
+.att-iconbtn {
+    min-width: 36px; min-height: 36px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--surface2); color: var(--ink2); font: inherit; font-size: 13px; cursor: pointer;
+}
+.att-fields { display: flex; gap: 10px; margin-bottom: 10px; }
+.att-field { flex: 1; min-width: 0; }
+.att-label { display: block; font-size: 12px; color: var(--ink2); margin-bottom: 6px; font-weight: 600; }
+.att-full { width: 100%; }
+.att-time {
+    flex: 1; min-width: 0; padding: 10px 12px; font: inherit; font-size: 15px; color: var(--ink);
+    background: var(--surface2); border: 1px solid var(--line); border-radius: 10px; min-height: 44px;
+    box-sizing: border-box; transition: background .3s;
+}
+.att-text {
+    width: 100%; margin-top: 10px; padding: 10px 12px; font: inherit; font-size: 14px; color: var(--ink);
+    background: var(--surface2); border: 1px solid var(--line); border-radius: 10px; box-sizing: border-box;
+    transition: background .3s;
+}
+
+/* buttons */
+.att-btn {
+    padding: 10px 16px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--surface2); color: var(--ink); font: inherit; font-weight: 700; font-size: 13px;
+    cursor: pointer; min-height: 44px; transition: transform .08s, background .2s, opacity .2s;
+}
+.att-btn:active { transform: scale(.96); }
+.att-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: var(--onaccent); border: none; }
+.att-soft { background: var(--surface2); color: var(--accent); border-color: var(--line); }
+.att-ghost { background: transparent; }
+.att-danger { background: transparent; color: var(--danger); border-color: var(--danger); }
+.att-block { display: block; width: 100%; }
+.att-flex { flex: 1; }
+.att-btnrow { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.att-punchrow { display: flex; gap: 8px; }
+.att-punch { min-height: 52px; font-size: 15px; }
+.att-or { font-size: 11px; color: var(--ink2); text-align: center; margin: 10px 0 2px; }
+.att-error { color: var(--danger); font-size: 12px; margin: 6px 0; font-weight: 600; }
+.att-duration { font-size: 13px; font-weight: 700; text-align: center; border-radius: 10px; padding: 8px 10px; margin-bottom: 10px; }
+.att-du-full { background: var(--nighttint); color: var(--accent); }
+.att-du-short { background: var(--daytint); color: var(--warn); }
+
+/* sections, backup, footer */
+.att-section { font-size: 14px; font-weight: 700; margin: 20px 2px 10px; }
+.att-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; transition: background .3s; }
+.att-hint { font-size: 12px; color: var(--ink2); line-height: 1.7; margin-top: 8px; }
+.att-restore {
+    width: 100%; margin-top: 10px; padding: 10px 12px; font: inherit; font-size: 13px; color: var(--ink);
+    background: var(--surface2); border: 1px solid var(--line); border-radius: 10px; box-sizing: border-box;
+    transition: background .3s;
+}
+.att-footer { font-size: 11px; color: var(--ink2); text-align: center; margin-top: 28px; }
+.att-section-toggle {
+    display: flex; align-items: center; gap: 6px; width: 100%; background: none; border: none;
+    color: var(--ink); font: inherit; cursor: pointer; padding: 0; text-align: start;
+}
+.att-caret { display: inline-block; font-size: 12px; color: var(--ink2); transition: transform .2s; transform: rotate(90deg); }
+[dir="rtl"] .att-caret { transform: rotate(-90deg); }
+.att-caret.att-caret-open, [dir="rtl"] .att-caret.att-caret-open { transform: rotate(0deg); }
+
+@keyframes att-rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function () {
+'use strict';
+
+/* ---------- helpers ---------- */
+var AR_D = '٠١٢٣٤٥٦٧٨٩';
+function arDigits(n) { return String(n).replace(/[0-9]/g, function (d) { return AR_D[+d]; }); }
+var MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+var MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function pad(n) { return String(n).padStart(2, '0'); }
+function keyOf(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function fromKey(k) { var p = k.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+function nowTime() { var n = new Date(); return pad(n.getHours()) + ':' + pad(n.getMinutes()); }
+function hoursOf(ci, co) {
+    if (!ci || !co) return null;
+    var a = ci.split(':').map(Number), b = co.split(':').map(Number);
+    var mins = (b[0] * 60 + b[1]) - (a[0] * 60 + a[1]);
+    if (mins <= 0) mins += 24 * 60;
+    return Math.round(mins / 6) / 10;
+}
+function fmtH(n) { return Number.isInteger(n) ? String(n) : n.toFixed(1); }
+function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/* ---------- cycle logic: 16th -> 15th ---------- */
+function cycleStartFor(date) {
+    var d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    if (d.getDate() >= 16) return new Date(d.getFullYear(), d.getMonth(), 16);
+    return new Date(d.getFullYear(), d.getMonth() - 1, 16);
+}
+function cycleEnd(start) { return new Date(start.getFullYear(), start.getMonth() + 1, 15); }
+function isShiftDay(d) { return d.getDay() === 6 || d.getDay() === 0 || d.getDay() === 1; }
+function isNight(d) { return d.getDay() === 1; }
+var REQUIRED = 12;
+var WEEK_ORDER = [6, 0, 1, 2, 3, 4, 5];
+
+/* ---------- strings ---------- */
+var STR = {
+    ar: {
+        dir: 'rtl',
+        title: 'حضور وانصراف',
+        hello: function (n) { return 'أهلاً يا هندسة 👋 عندك ' + n + ' يوم شغل الشهر ده'; },
+        dayShift: 'صباحي ٨ص - ٨م',
+        nightShift: 'ليلي ٨م - ٨ص',
+        total: 'أيام الشهر', worked: 'نزلت', remain: 'فاضل أيام',
+        sick: 'مرضي', swap: 'بدل', over: 'زيادة',
+        hoursW: 'الساعات', hoursL: 'فاضل ساعات',
+        done: 'كملت المطلوب ✅ برافو!',
+        remainingH: function (d, h) { return 'فاضل ' + d + ' يوم · ' + h + ' ساعة'; },
+        hoursWord: function (n) { return n + ' ساعة'; },
+        dayFull: 'يوم كامل ✅',
+        dayShort: function (h, m) { return 'اشتغلت ' + h + ' ساعة · ناقص ' + m; },
+        dayOver: function (h, m) { return 'اشتغلت ' + h + ' ساعة · زيادة ' + m + ' 💪'; },
+        tapHint: 'دوس على أي يوم عشان تسجل فيه',
+        legendDay: 'صباحي', legendNight: 'ليلي',
+        checkIn: 'حضور', checkOut: 'انصراف', save: 'حفظ التعديل',
+        orManual: 'أو عدل الوقت بإيدك واحفظ',
+        markSick: 'إجازة مرضي', markSwap: 'شيفت بدل',
+        colleague: 'اسم الزميل (اختياري)',
+        clear: 'مسح', confirmClear: 'تأكيد المسح؟', close: 'قفل',
+        nightNote: 'بيتحسب يوم واحد على الاثنين',
+        extraNote: 'يوم مش من أيامك، بيتحسب شيفت بدل',
+        needTime: 'سجل وقت حضور أو انصراف الأول',
+        backup: 'نسخة احتياطية',
+        copy: 'نسخ البيانات', copied: 'اتنسخت ✅', copyBlocked: 'النسخ متاح من قائمة المتصفح',
+        restorePh: 'الصق النسخة هنا للاسترجاع', restore: 'استرجاع',
+        restored: 'تم الاسترجاع ✅', badCopy: 'النص ده مش نسخة صالحة.',
+        footer: '© Hazem Saleh',
+        weekdays: ['س', 'ح', 'ن', 'ث', 'ر', 'خ', 'ج'],
+        monthYear: function (d) { return MONTHS_AR[d.getMonth()] + ' ' + arDigits(d.getFullYear()); },
+        dow: function (d) { return ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'][d.getDay()]; },
+        num: function (n) { return arDigits(n); },
+        fmtDate: function (d) { return arDigits(d.getDate()) + ' ' + MONTHS_AR[d.getMonth()]; },
+        cycleTitle: function (s, e) { return MONTHS_AR[s.getMonth()] + ' - ' + MONTHS_AR[e.getMonth()] + ' ' + arDigits(e.getFullYear()); },
+        prev: '‹', next: '›'
+    },
+    en: {
+        dir: 'ltr',
+        title: 'Shift Attendance',
+        hello: function (n) { return 'Hey boss 👋 ' + n + ' work days this month'; },
+        dayShift: 'Day 8am - 8pm',
+        nightShift: 'Night 8pm - 8am',
+        total: 'Month days', worked: 'Worked', remain: 'Days left',
+        sick: 'Sick', swap: 'Swap', over: 'Extra',
+        hoursW: 'Hours', hoursL: 'Hours left',
+        done: 'Target reached ✅',
+        remainingH: function (d, h) { return d + ' days · ' + h + ' hours left'; },
+        hoursWord: function (n) { return n + ' hours'; },
+        dayFull: 'Full day ✅',
+        dayShort: function (h, m) { return h + 'h worked · ' + m + ' short'; },
+        dayOver: function (h, m) { return h + 'h worked · ' + m + ' extra 💪'; },
+        tapHint: 'Tap any day to log it',
+        legendDay: 'Day shift', legendNight: 'Night shift',
+        checkIn: 'Check in', checkOut: 'Check out', save: 'Save edit',
+        orManual: 'or edit the time manually and save',
+        markSick: 'Sick leave', markSwap: 'Swap shift',
+        colleague: 'Colleague name (optional)',
+        clear: 'Clear', confirmClear: 'Confirm clear?', close: 'Close',
+        nightNote: 'counts once, on Monday',
+        extraNote: 'not one of your days, counts as a swap',
+        needTime: 'Enter a check-in or check-out time first',
+        backup: 'Backup',
+        copy: 'Copy data', copied: 'Copied ✅', copyBlocked: 'Copy blocked, use the browser menu',
+        restorePh: 'Paste the backup here to restore', restore: 'Restore',
+        restored: 'Restored ✅', badCopy: 'That is not a valid backup.',
+        footer: '© Hazem Saleh',
+        weekdays: ['S', 'S', 'M', 'T', 'W', 'T', 'F'],
+        monthYear: function (d) { return MONTHS_EN[d.getMonth()] + ' ' + d.getFullYear(); },
+        dow: function (d) { return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()]; },
+        num: function (n) { return String(n); },
+        fmtDate: function (d) { return MONTHS_EN[d.getMonth()] + ' ' + d.getDate(); },
+        cycleTitle: function (s, e) { return MONTHS_EN[s.getMonth()] + ' - ' + MONTHS_EN[e.getMonth()] + ' ' + e.getFullYear(); },
+        prev: '‹', next: '›'
+    }
+};
+
+/* ---------- state ---------- */
+function loadLS(key, fallback) {
+    try {
+        var raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        var v = JSON.parse(raw);
+        return v && typeof v === 'object' ? v : fallback;
+    } catch (e) { return fallback; }
+}
+function saveLS(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+}
+var store = loadLS('attendance.v1', { records: {} });
+if (!store.records || typeof store.records !== 'object') store.records = {};
+var prefs = loadLS('attendance.prefs.v1', { lang: 'ar', theme: 'dark' });
+var viewStart = cycleStartFor(new Date());
+var openKey = null;
+var backupOpen = false;
+var restoreText = '';
+var msg = '';
+var ed = null; // editor state {ci, co, col, confirmClear, err}
+
+/* ---------- calendar helpers ---------- */
+function monthSegments(start) {
+    var end = cycleEnd(start);
+    return [
+        { year: start.getFullYear(), month: start.getMonth(), from: 16, to: new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate() },
+        { year: end.getFullYear(), month: end.getMonth(), from: 1, to: 15 }
+    ];
+}
+function buildCells(seg) {
+    var cells = [];
+    var firstDow = new Date(seg.year, seg.month, seg.from).getDay();
+    var blanks = WEEK_ORDER.indexOf(firstDow);
+    for (var i = 0; i < blanks; i++) cells.push(null);
+    for (var d = seg.from; d <= seg.to; d++) {
+        var date = new Date(seg.year, seg.month, d);
+        cells.push({ key: keyOf(date), date: date, shift: isShiftDay(date) ? (isNight(date) ? 'night' : 'day') : null });
+    }
+    return cells;
+}
+
+/* ---------- actions ---------- */
+function saveRecord(key, r) {
+    var next = {};
+    Object.keys(store.records).forEach(function (k) { next[k] = store.records[k]; });
+    if (r === null) delete next[key]; else next[key] = r;
+    store = { records: next };
+    saveLS('attendance.v1', store);
+    openKey = null;
+    ed = null;
+    render();
+}
+function setPrefs(p) {
+    prefs = p;
+    saveLS('attendance.prefs.v1', prefs);
+    render();
+}
+
+/* ---------- render ---------- */
+function render() {
+    var lang = prefs.lang === 'en' ? 'en' : 'ar';
+    var t = STR[lang];
+    var theme = prefs.theme === 'light' ? 'light' : 'dark';
+    var records = store.records;
+    var start = viewStart;
+    var end = cycleEnd(start);
+    var todayKey = keyOf(new Date());
+
+    var segs = monthSegments(start).map(function (seg) { return { seg: seg, cells: buildCells(seg) }; });
+    var total = 0, worked = 0, sick = 0, swap = 0, hours = 0, openCell = null;
+    segs.forEach(function (s) {
+        s.cells.forEach(function (c) {
+            if (!c) return;
+            if (c.shift) total++;
+            if (openKey && c.key === openKey) openCell = c;
+        });
+    });
+    Object.keys(records).forEach(function (k) {
+        var r = records[k];
+        if (!r) return;
+        var dt = fromKey(k);
+        if (dt < start || dt > end) return;
+        var onShift = isShiftDay(dt);
+        if (r.type === 'work' && (r.checkIn || r.checkOut)) {
+            if (onShift || r.extra) worked++;
+            var h = hoursOf(r.checkIn, r.checkOut);
+            if (h !== null && (onShift || r.extra)) hours += h;
+        } else if (r.type === 'sick') { if (onShift) sick++; }
+        else if (r.type === 'swap') { if (onShift || r.extra) { swap++; worked++; } }
+    });
+    hours = Math.round(hours * 10) / 10;
+    var remain = Math.max(0, REQUIRED - worked);
+    var over = Math.max(0, worked - REQUIRED);
+    var hoursLeft = Math.max(0, Math.round((REQUIRED * 12 - hours) * 10) / 10);
+    var pct = Math.min(100, Math.round(worked / REQUIRED * 100));
+
+    function cellClass(c) {
+        var r = records[c.key];
+        var cls = ['att-cell'];
+        if (c.shift === 'day') cls.push('att-c-day');
+        else if (c.shift === 'night') cls.push('att-c-night');
+        else cls.push('att-c-off');
+        if (r) {
+            var h = r.type === 'work' ? hoursOf(r.checkIn, r.checkOut) : null;
+            if (h !== null && h >= 12) cls.push('att-c-worked');
+            else if (h !== null) cls.push('att-c-short');
+            else if (r.type === 'work' && (r.checkIn || r.checkOut)) cls.push('att-c-checked');
+            else if (r.type === 'sick') cls.push('att-c-sick');
+            else if (r.type === 'swap') cls.push('att-c-swap');
+        }
+        if (c.key === todayKey) cls.push('att-c-today');
+        if (c.key === openKey) cls.push('att-c-open');
+        return cls.join(' ');
+    }
+    function cellMark(c) {
+        var r = records[c.key];
+        if (r && r.type === 'work') {
+            var h = hoursOf(r.checkIn, r.checkOut);
+            if (h !== null) return h >= 12 ? '✓' : t.num(fmtH(h)) + '⚠';
+            if (r.checkIn) return '•';
+        }
+        if (r && r.type === 'sick') return '🤒';
+        if (r && r.type === 'swap') return '🔄';
+        if (c.shift === 'day') return '☀';
+        if (c.shift === 'night') return '☾';
+        return '';
+    }
+
+    var stats = [
+        { label: t.total, value: t.num(total), tone: 'att-tone-base' },
+        { label: t.worked, value: t.num(worked), tone: 'att-tone-good' },
+        { label: t.remain, value: t.num(remain), tone: remain > 0 ? 'att-tone-warn' : 'att-tone-good' },
+        { label: t.hoursW, value: t.num(fmtH(hours)), tone: 'att-tone-info' },
+        { label: t.hoursL, value: t.num(fmtH(hoursLeft)), tone: hoursLeft > 0 ? 'att-tone-warn' : 'att-tone-good' },
+        { label: t.sick, value: t.num(sick), tone: 'att-tone-warn' },
+        { label: t.swap, value: t.num(swap), tone: 'att-tone-info' },
+        { label: t.over, value: t.num(over), tone: 'att-tone-good' }
+    ];
+
+    var html = '';
+    html += '<div class="att-hero">';
+    html += '<div class="att-hero-top"><div class="att-hero-title">' + esc(t.title) + '</div>';
+    html += '<div class="att-toggles">';
+    html += '<button type="button" class="att-toggle" data-act="lang">' + (lang === 'ar' ? 'EN' : 'ع') + '</button>';
+    html += '<button type="button" class="att-toggle" data-act="theme">' + (theme === 'dark' ? '☀️' : '🌙') + '</button>';
+    html += '</div></div>';
+    html += '<div class="att-hero-sub">' + esc(t.hello(t.num(total))) + '</div>';
+    html += '<div class="att-monthrow">';
+    html += '<button type="button" class="att-navbtn" data-act="prev">' + t.prev + '</button>';
+    html += '<div class="att-month">' + esc(t.cycleTitle(start, end)) + '</div>';
+    html += '<button type="button" class="att-navbtn" data-act="next">' + t.next + '</button>';
+    html += '</div>';
+    html += '<div class="att-progress" aria-hidden="true"><div style="width:' + pct + '%"></div></div>';
+    html += '<div class="att-progress-label">' + esc(remain > 0 ? t.remainingH(t.num(remain), t.num(fmtH(hoursLeft))) : t.done) + (over > 0 ? ' · +' + esc(t.num(over)) : '') + '</div>';
+    html += '</div>';
+
+    html += '<div class="att-stats">';
+    stats.forEach(function (s) {
+        html += '<div class="att-stat"><div class="att-stat-num ' + s.tone + '">' + esc(s.value) + '</div><div class="att-stat-label">' + esc(s.label) + '</div></div>';
+    });
+    html += '</div>';
+
+    html += '<div class="att-taphint">' + esc(t.tapHint) + '</div>';
+
+    segs.forEach(function (s) {
+        html += '<div class="att-monthblock">';
+        html += '<div class="att-monthtitle">' + esc(t.monthYear(new Date(s.seg.year, s.seg.month, 1))) + '</div>';
+        html += '<div class="att-weekrow">';
+        t.weekdays.forEach(function (w) { html += '<div class="att-weekday">' + esc(w) + '</div>'; });
+        html += '</div><div class="att-grid">';
+        s.cells.forEach(function (c, i) {
+            if (c === null) { html += '<div class="att-cell att-c-blank"></div>'; return; }
+            html += '<button type="button" class="' + cellClass(c) + '" data-day="' + c.key + '">';
+            html += '<span class="att-cellnum">' + esc(t.num(c.date.getDate())) + '</span>';
+            html += '<span class="att-cellmark">' + esc(cellMark(c)) + '</span>';
+            html += '</button>';
+        });
+        html += '</div></div>';
+    });
+
+    html += '<div class="att-legend">';
+    html += '<span class="att-leg"><span class="att-dot att-d-day"></span>' + esc(t.legendDay) + '</span>';
+    html += '<span class="att-leg"><span class="att-dot att-d-night"></span>' + esc(t.legendNight) + '</span>';
+    html += '</div>';
+
+    /* editor */
+    if (openCell) {
+        var record = records[openCell.key];
+        if (!ed) ed = { ci: (record && record.checkIn) || '', co: (record && record.checkOut) || '', col: (record && record.colleague) || '', confirmClear: false, err: '' };
+        var isExtra = openCell.shift === null;
+        var shiftLabel = openCell.shift === 'night' ? t.nightShift + ' · ' + t.nightNote : openCell.shift === 'day' ? t.dayShift : t.extraNote;
+        html += '<div class="att-editor">';
+        html += '<div class="att-editor-head"><div>';
+        html += '<div class="att-editor-title">' + esc(t.dow(openCell.date)) + ' · ' + esc(t.fmtDate(openCell.date)) + '</div>';
+        html += '<div class="att-editor-sub">' + esc(shiftLabel) + '</div>';
+        html += '</div>';
+        html += '<button type="button" class="att-iconbtn" data-act="close" aria-label="' + esc(t.close) + '">✕</button></div>';
+        html += '<div class="att-fields">';
+        html += '<div class="att-field"><label class="att-label">' + esc(t.checkIn) + '</label><input type="time" dir="ltr" class="att-time att-full" id="ed-ci" value="' + esc(ed.ci) + '"></div>';
+        html += '<div class="att-field"><label class="att-label">' + esc(t.checkOut) + '</label><input type="time" dir="ltr" class="att-time att-full" id="ed-co" value="' + esc(ed.co) + '"></div>';
+        html += '</div>';
+        if (ed.err) html += '<div class="att-error">' + esc(ed.err) + '</div>';
+        var hh = hoursOf(ed.ci || (record && record.checkIn), ed.co || (record && record.checkOut));
+        if (hh !== null) {
+            var hs = t.num(fmtH(hh));
+            if (hh >= 12) html += '<div class="att-duration att-du-full">' + esc(hh === 12 ? t.dayFull : t.dayOver(hs, t.num(fmtH(Math.round((hh - 12) * 10) / 10)))) + '</div>';
+            else html += '<div class="att-duration att-du-short">' + esc(t.dayShort(hs, t.hoursWord(t.num(fmtH(Math.round((12 - hh) * 10) / 10))))) + '</div>';
+        }
+        html += '<div class="att-punchrow">';
+        html += '<button type="button" class="att-btn att-primary att-flex att-punch" data-act="pin">' + esc(t.checkIn) + ' ✓</button>';
+        html += '<button type="button" class="att-btn att-soft att-flex att-punch" data-act="pout">' + esc(t.checkOut) + '</button>';
+        html += '</div>';
+        html += '<div class="att-or">' + esc(t.orManual) + '</div>';
+        html += '<button type="button" class="att-btn att-ghost att-block" data-act="save">' + esc(t.save) + '</button>';
+        html += '<div class="att-btnrow">';
+        html += '<button type="button" class="att-btn att-soft att-flex" data-act="sick">' + esc(t.markSick) + '</button>';
+        html += '<button type="button" class="att-btn att-soft att-flex" data-act="swap">' + esc(t.markSwap) + '</button>';
+        html += '</div>';
+        html += '<input type="text" class="att-text" id="ed-col" placeholder="' + esc(t.colleague) + '" value="' + esc(ed.col) + '">';
+        if (record) {
+            html += '<div class="att-btnrow">';
+            if (ed.confirmClear) html += '<button type="button" class="att-btn att-danger" data-act="doclear">' + esc(t.confirmClear) + '</button>';
+            else html += '<button type="button" class="att-btn att-ghost" data-act="clear">' + esc(t.clear) + '</button>';
+            html += '</div>';
+        }
+        html += '</div>';
+    } else {
+        ed = null;
+    }
+
+    /* backup */
+    html += '<button type="button" class="att-section att-section-toggle" data-act="backup" aria-expanded="' + backupOpen + '">';
+    html += '<span class="' + (backupOpen ? 'att-caret att-caret-open' : 'att-caret') + '">▾</span>' + esc(t.backup) + '</button>';
+    if (backupOpen) {
+        html += '<div class="att-card">';
+        html += '<div class="att-btnrow"><button type="button" class="att-btn att-soft" data-act="copy">' + esc(t.copy) + '</button></div>';
+        html += '<textarea class="att-restore" dir="ltr" id="ed-restore" placeholder="' + esc(t.restorePh) + '" rows="2">' + esc(restoreText) + '</textarea>';
+        html += '<div class="att-btnrow"><button type="button" class="att-btn att-ghost" data-act="restore">' + esc(t.restore) + '</button></div>';
+        if (msg) html += '<div class="att-hint">' + esc(msg) + '</div>';
+        html += '</div>';
+    }
+
+    html += '<div class="att-footer" dir="ltr">' + esc(t.footer) + '</div>';
+
+    var root = document.getElementById('app');
+    root.innerHTML = '<div class="att-root" data-theme="' + theme + '" dir="' + t.dir + '">' + html + '</div>';
+    document.documentElement.lang = lang;
+    document.documentElement.dir = t.dir;
+    document.title = t.title;
+    var themeMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeMeta) themeMeta.setAttribute('content', theme === 'dark' ? '#0d131c' : '#f4f2f0');
+
+    /* wire inputs that should not trigger re-render */
+    var ciEl = document.getElementById('ed-ci');
+    var coEl = document.getElementById('ed-co');
+    var colEl = document.getElementById('ed-col');
+    var rsEl = document.getElementById('ed-restore');
+    function refreshDuration() {
+        var dur = document.querySelector('.att-duration');
+        if (dur) dur.remove();
+        var h2 = hoursOf(ed.ci, ed.co);
+        if (h2 !== null) {
+            var errEl = document.querySelector('.att-error');
+            var hs2 = t.num(fmtH(h2));
+            var div = document.createElement('div');
+            if (h2 >= 12) { div.className = 'att-duration att-du-full'; div.textContent = h2 === 12 ? t.dayFull : t.dayOver(hs2, t.num(fmtH(Math.round((h2 - 12) * 10) / 10))); }
+            else { div.className = 'att-duration att-du-short'; div.textContent = t.dayShort(hs2, t.hoursWord(t.num(fmtH(Math.round((12 - h2) * 10) / 10)))); }
+            var anchor = errEl || document.querySelector('.att-fields');
+            anchor.parentNode.insertBefore(div, anchor.nextSibling);
+        }
+    }
+    if (ciEl) ciEl.addEventListener('input', function () { ed.ci = ciEl.value; ed.err = ''; refreshDuration(); });
+    if (coEl) coEl.addEventListener('input', function () { ed.co = coEl.value; ed.err = ''; refreshDuration(); });
+    if (colEl) colEl.addEventListener('input', function () { ed.col = colEl.value; });
+    if (rsEl) rsEl.addEventListener('input', function () { restoreText = rsEl.value; });
+
+    /* wire buttons */
+    root.querySelectorAll('[data-act]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var act = btn.getAttribute('data-act');
+            var record = openKey ? records[openKey] : undefined;
+            var isExtra2 = openKey ? segs.some(function (s) { return s.cells.some(function (c) { return c && c.key === openKey && c.shift === null; }); }) : false;
+            if (act === 'lang') setPrefs({ lang: lang === 'ar' ? 'en' : 'ar', theme: theme });
+            else if (act === 'theme') setPrefs({ lang: lang, theme: theme === 'dark' ? 'light' : 'dark' });
+            else if (act === 'prev') { viewStart = new Date(start.getFullYear(), start.getMonth() - 1, 16); openKey = null; ed = null; render(); }
+            else if (act === 'next') { viewStart = new Date(start.getFullYear(), start.getMonth() + 1, 16); openKey = null; ed = null; render(); }
+            else if (act === 'close') { openKey = null; ed = null; render(); }
+            else if (act === 'pin') {
+                var now = nowTime();
+                saveRecord(openKey, { type: 'work', checkIn: now, checkOut: ed.co || (record && record.checkOut) || null, ...(isExtra2 ? { extra: true } : {}) });
+            } else if (act === 'pout') {
+                var now2 = nowTime();
+                saveRecord(openKey, { type: 'work', checkIn: ed.ci || (record && record.checkIn) || null, checkOut: now2, ...(isExtra2 ? { extra: true } : {}) });
+            } else if (act === 'save') {
+                if (!ed.ci && !ed.co) { ed.err = t.needTime; render(); return; }
+                saveRecord(openKey, { type: 'work', checkIn: ed.ci || null, checkOut: ed.co || null, ...(isExtra2 ? { extra: true } : {}) });
+            } else if (act === 'sick') {
+                saveRecord(openKey, { type: 'sick', ...(isExtra2 ? { extra: true } : {}) });
+            } else if (act === 'swap') {
+                saveRecord(openKey, { type: 'swap', colleague: (ed.col || '').trim() || null, ...(isExtra2 ? { extra: true } : {}) });
+            } else if (act === 'clear') { ed.confirmClear = true; render(); }
+            else if (act === 'doclear') { saveRecord(openKey, null); }
+            else if (act === 'backup') { backupOpen = !backupOpen; render(); }
+            else if (act === 'copy') {
+                var text = JSON.stringify(store);
+                var done2 = false;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(function () { msg = t.copied; render(); }).catch(function () { msg = t.copyBlocked; render(); });
+                    done2 = true;
+                }
+                if (!done2) {
+                    try {
+                        var ta = document.createElement('textarea');
+                        ta.value = text;
+                        ta.style.position = 'fixed'; ta.style.opacity = '0';
+                        document.body.appendChild(ta);
+                        ta.select();
+                        var ok = document.execCommand && document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        msg = ok ? t.copied : t.copyBlocked;
+                    } catch (e) { msg = t.copyBlocked; }
+                    render();
+                }
+            } else if (act === 'restore') {
+                try {
+                    var data = JSON.parse(restoreText);
+                    if (!data || typeof data !== 'object' || typeof data.records !== 'object' || data.records === null) throw new Error('bad');
+                    store = { records: data.records };
+                    saveLS('attendance.v1', store);
+                    restoreText = '';
+                    msg = t.restored;
+                } catch (e) { msg = t.badCopy; }
+                render();
+            }
+        });
+    });
+
+    /* wire day cells */
+    root.querySelectorAll('[data-day]').forEach(function (cell) {
+        cell.addEventListener('click', function () {
+            var k = cell.getAttribute('data-day');
+            openKey = openKey === k ? null : k;
+            ed = null;
+            msg = '';
+            render();
+            var edEl = document.querySelector('.att-editor');
+            if (edEl && openKey) edEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+    });
+}
+
+render();
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').catch(function () {});
+    });
+}
+})();
+</script>
+</body>
+</html>
