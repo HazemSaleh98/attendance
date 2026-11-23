@@ -424,6 +424,7 @@ function saveRecord(key, r) {
     render();
 }
 function setPrefs(p) {
+    if (!p.pattern) p.pattern = prefs.pattern;
     prefs = p;
     saveLS('attendance.prefs.v1', prefs);
     render();
