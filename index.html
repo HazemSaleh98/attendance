@@ -493,16 +493,22 @@ function makeIcons(file, cb) {
     var img = new Image();
     img.onload = function () {
         var s = Math.min(img.width, img.height);
+        var sx = (img.width - s) / 2, sy = (img.height - s) / 2;
+        var probe = document.createElement('canvas');
+        probe.width = 1; probe.height = 1;
+        probe.getContext('2d').drawImage(img, sx, sy, s, s, 0, 0, 1, 1);
+        var px = probe.getContext('2d').getImageData(0, 0, 1, 1).data;
+        var bg = 'rgb(' + px[0] + ',' + px[1] + ',' + px[2] + ')';
         function draw(size, pad) {
             var cv = document.createElement('canvas');
             cv.width = size; cv.height = size;
             var cx = cv.getContext('2d');
-            cx.fillStyle = '#ffffff'; cx.fillRect(0, 0, size, size);
+            cx.fillStyle = bg; cx.fillRect(0, 0, size, size);
             var inner = size * (1 - 2 * pad), off = size * pad;
-            cx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, off, off, inner, inner);
+            cx.drawImage(img, sx, sy, s, s, off, off, inner, inner);
             return cv.toDataURL('image/png');
         }
-        cb({ i180: draw(180, 0.04), i192: draw(192, 0.04), i512: draw(512, 0.04), i512m: draw(512, 0.1) });
+        cb({ i180: draw(180, 0), i192: draw(192, 0), i512: draw(512, 0), i512m: draw(512, 0.1) });
     };
     img.src = URL.createObjectURL(file);
 }
