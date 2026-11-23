@@ -295,6 +295,9 @@ var STR = {
         copy: 'نسخ البيانات', copied: 'اتنسخت ✅', copyBlocked: 'النسخ متاح من قائمة المتصفح',
         restorePh: 'الصق النسخة هنا للاسترجاع', restore: 'استرجاع',
         restored: 'تم الاسترجاع ✅', badCopy: 'النص ده مش نسخة صالحة.',
+        exportBtn: '⬇ تصدير Excel',
+        xlHead: ['التاريخ', 'اليوم', 'الشيفت', 'الحالة', 'الحضور', 'الانصراف', 'الساعات', 'الزميل'],
+        xlWork: 'عمل', xlSick: 'مرضي', xlSwap: 'بدل', xlNone: '-',
         footer: '© Hazem Saleh',
         weekdays: ['س', 'ح', 'ن', 'ث', 'ر', 'خ', 'ج'],
         monthYear: function (d) { return MONTHS_AR[d.getMonth()] + ' ' + arDigits(d.getFullYear()); },
@@ -333,6 +336,9 @@ var STR = {
         copy: 'Copy data', copied: 'Copied ✅', copyBlocked: 'Copy blocked, use the browser menu',
         restorePh: 'Paste the backup here to restore', restore: 'Restore',
         restored: 'Restored ✅', badCopy: 'That is not a valid backup.',
+        exportBtn: '⬇ Export Excel',
+        xlHead: ['Date', 'Day', 'Shift', 'Status', 'Check-in', 'Check-out', 'Hours', 'Colleague'],
+        xlWork: 'Work', xlSick: 'Sick', xlSwap: 'Swap', xlNone: '-',
         footer: '© Hazem Saleh',
         weekdays: ['S', 'S', 'M', 'T', 'W', 'T', 'F'],
         monthYear: function (d) { return MONTHS_EN[d.getMonth()] + ' ' + d.getFullYear(); },
@@ -530,6 +536,8 @@ function render() {
     html += '<span class="att-leg"><span class="att-dot att-d-night"></span>' + esc(t.legendNight) + '</span>';
     html += '</div>';
 
+    html += '<div style="margin:12px 0 4px"><button type="button" class="att-btn att-soft att-block" data-act="export">' + esc(t.exportBtn) + '</button></div>';
+
     /* editor */
     if (openCell) {
         var record = records[openCell.key];
@@ -648,6 +656,7 @@ function render() {
             } else if (act === 'clear') { ed.confirmClear = true; render(); }
             else if (act === 'doclear') { saveRecord(openKey, null); }
             else if (act === 'backup') { backupOpen = !backupOpen; render(); }
+            else if (act === 'export') { exportCycle(t, lang, start, records); }
             else if (act === 'copy') {
                 var text = JSON.stringify(store);
                 var done2 = false;
@@ -694,6 +703,81 @@ function render() {
             if (edEl && openKey) edEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         });
     });
+}
+
+/* ---------- xlsx export (offline, no libraries) ---------- */
+function crc32(buf) {
+    if (!crc32.t) { crc32.t = new Uint32Array(256); for (var i = 0; i < 256; i++) { var c = i; for (var j = 0; j < 8; j++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; crc32.t[i] = c >>> 0; } }
+    var crc = 0xFFFFFFFF;
+    for (var k = 0; k < buf.length; k++) crc = crc32.t[(crc ^ buf[k]) & 0xFF] ^ (crc >>> 8);
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+function xlsxBuild(sheetName, rows) {
+    var enc = new TextEncoder();
+    function colRef(n) { var s = ''; n++; while (n > 0) { var m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = (n - m) / 26 | 0; } return s; }
+    function xmlEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    var sheet = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>';
+    rows.forEach(function (row, r) {
+        sheet += '<row r="' + (r + 1) + '">';
+        row.forEach(function (cell, c) {
+            var ref = colRef(c) + (r + 1);
+            if (typeof cell === 'number') sheet += '<c r="' + ref + '"><v>' + cell + '</v></c>';
+            else sheet += '<c r="' + ref + '" t="inlineStr"><is><t xml:space="preserve">' + xmlEsc(cell) + '</t></is></c>';
+        });
+        sheet += '</row>';
+    });
+    sheet += '</sheetData></worksheet>';
+    var files = {
+        '[Content_Types].xml': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
+        '_rels/.rels': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+        'xl/workbook.xml': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="' + sheetName + '" sheetId="1" r:id="rId1"/></sheets></workbook>',
+        'xl/_rels/workbook.xml.rels': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
+        'xl/worksheets/sheet1.xml': sheet
+    };
+    var chunks = [], central = [], offset = 0;
+    Object.keys(files).forEach(function (name) {
+        var data = enc.encode(files[name]), nameB = enc.encode(name), crc = crc32(data);
+        var lh = new DataView(new ArrayBuffer(30));
+        lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true);
+        lh.setUint16(8, 0, true); lh.setUint16(10, 0, true); lh.setUint16(12, 0, true);
+        lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true);
+        lh.setUint16(26, nameB.length, true); lh.setUint16(28, 0, true);
+        chunks.push(new Uint8Array(lh.buffer), nameB, data);
+        var ch = new DataView(new ArrayBuffer(46));
+        ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true);
+        ch.setUint16(10, 0, true); ch.setUint16(12, 0, true); ch.setUint16(14, 0, true);
+        ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true);
+        ch.setUint16(28, nameB.length, true); ch.setUint32(42, offset, true);
+        central.push(new Uint8Array(ch.buffer), nameB);
+        offset += 30 + nameB.length + data.length;
+    });
+    var cdSize = central.reduce(function (a, b) { return a + b.length; }, 0);
+    var eocd = new DataView(new ArrayBuffer(22));
+    var n = Object.keys(files).length;
+    eocd.setUint32(0, 0x06054b50, true); eocd.setUint16(8, n, true); eocd.setUint16(10, n, true);
+    eocd.setUint32(12, cdSize, true); eocd.setUint32(16, offset, true); eocd.setUint16(20, 0, true);
+    return new Blob(chunks.concat(central, [new Uint8Array(eocd.buffer)]), { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+function exportCycle(t, lang, start, records) {
+    var end = cycleEnd(start);
+    var rows = [t.xlHead];
+    for (var d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        var k = keyOf(d), r = records[k];
+        var shift = isShiftDay(d) ? (isNight(d) ? t.nightShift : t.dayShift) : t.xlNone;
+        var status = t.xlNone, ci = '', co = '', hrs = '', col = '';
+        if (r) {
+            if (r.type === 'work') { status = t.xlWork; ci = r.checkIn || ''; co = r.checkOut || ''; var h = hoursOf(r.checkIn, r.checkOut); if (h !== null) hrs = h; }
+            else if (r.type === 'sick') status = t.xlSick;
+            else if (r.type === 'swap') { status = t.xlSwap; col = r.colleague || ''; }
+        }
+        rows.push([k, t.dow(d), shift, status, ci, co, hrs, col]);
+    }
+    var blob = xlsxBuild('Attendance', rows);
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'attendance-' + start.getFullYear() + '-' + pad(start.getMonth() + 1) + '.xlsx';
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
 
 render();
