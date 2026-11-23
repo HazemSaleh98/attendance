@@ -211,6 +211,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial
 .att-schedbtn { font-size: 12px; padding: 6px 10px; }
 .att-schedhint { font-size: 11px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
 .att-iconrow { display: flex; align-items: center; gap: 12px; }
+.att-timesrow { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+.att-timesrow .att-time { flex: 1; min-width: 0; }
 .att-iconprev { width: 48px; height: 48px; border-radius: 12px; border: 1px solid var(--line); }
 .att-hint { font-size: 12px; color: var(--ink2); line-height: 1.7; margin-top: 8px; }
 .att-restore {
@@ -270,6 +272,25 @@ function cycleEnd(start) { return new Date(start.getFullYear(), start.getMonth()
 function isShiftDay(d) { return d.getDay() === 6 || d.getDay() === 0 || d.getDay() === 1; }
 function isNight(d) { return d.getDay() === 1; }
 function effShift(d) { var v = prefs.pattern[d.getDay()]; return v === 'day' || v === 'night' ? v : null; }
+function shiftHours(type) {
+    var st = prefs.shiftTimes;
+    var h = type === 'night' ? hoursOf(st.nightStart, st.nightEnd) : hoursOf(st.dayStart, st.dayEnd);
+    return h === null ? 12 : h;
+}
+function fmtClock(hhmm) {
+    var p = String(hhmm).split(':');
+    var h = +p[0];
+    var h12 = h % 12 || 12;
+    var ap = h < 12 ? (prefs.lang === 'ar' ? 'ص' : 'am') : (prefs.lang === 'ar' ? 'م' : 'pm');
+    return h12 + ':' + p[1] + ' ' + ap;
+}
+function shiftText(t, type) {
+    var st = prefs.shiftTimes;
+    var base = type === 'night' ? t.legendNight : t.legendDay;
+    var s = type === 'night' ? st.nightStart : st.dayStart;
+    var e = type === 'night' ? st.nightEnd : st.dayEnd;
+    return base + ' ' + t.num(fmtClock(s)) + ' - ' + t.num(fmtClock(e));
+}
 var REQUIRED = 12;
 var WEEK_ORDER = [6, 0, 1, 2, 3, 4, 5];
 
@@ -301,6 +322,7 @@ var STR = {
         sched: 'أيام الشغل', schedHint: 'دوس صباحي أو ليلي جنب كل يوم. لو دوست على النوع اللي متعلم، اليوم بيبقى أجازة.',
         iconSec: 'أيقونة التطبيق', iconChange: 'غيّر الأيقونة', iconReset: 'رجوع للأيقونة الأصلية',
         iconHint: 'بعد ما تغيّرها: شيل التطبيق من الشاشة الرئيسية وضيفه تاني من Safari عشان الأيقونة الجديدة تظهر.', iconSaved: 'الأيقونة اتغيّرت ✅',
+        timesTitle: 'مواعيد الشيفتات', toL: 'لـ', saveTimes: 'حفظ المواعيد', timesSaved: 'اتحفظت ✅',
         extraNote: 'يوم مش من أيامك، بيتحسب شيفت بدل',
         needTime: 'سجل وقت حضور أو انصراف الأول',
         backup: 'نسخة احتياطية',
@@ -345,6 +367,7 @@ var STR = {
         sched: 'Work days', schedHint: 'Tap Day or Night next to each weekday. Tap the active one to make it a day off.',
         iconSec: 'App icon', iconChange: 'Change icon', iconReset: 'Back to the original icon',
         iconHint: 'After changing it: remove the app from your home screen and add it again from Safari for the new icon to show.', iconSaved: 'Icon updated ✅',
+        timesTitle: 'Shift times', toL: 'to', saveTimes: 'Save times', timesSaved: 'Saved ✅',
         extraNote: 'not one of your days, counts as a swap',
         needTime: 'Enter a check-in or check-out time first',
         backup: 'Backup',
@@ -381,12 +404,14 @@ var store = loadLS('attendance.v1', { records: {} });
 if (!store.records || typeof store.records !== 'object') store.records = {};
 var prefs = loadLS('attendance.prefs.v1', { lang: 'ar', theme: 'dark' });
 if (!prefs.pattern || typeof prefs.pattern !== 'object') prefs.pattern = { 0: 'day', 1: 'night', 6: 'day' };
+if (!prefs.shiftTimes || typeof prefs.shiftTimes !== 'object') prefs.shiftTimes = { dayStart: '08:00', dayEnd: '20:00', nightStart: '20:00', nightEnd: '08:00' };
 var viewStart = cycleStartFor(new Date());
 var openKey = null;
 var backupOpen = false;
 var schedOpen = false;
 var iconOpen = false;
 var iconMsg = '';
+var timeMsg = '';
 var customIcon = loadLS('attendance.icon.v1', null);
 var restoreText = '';
 var msg = '';
@@ -425,6 +450,7 @@ function saveRecord(key, r) {
 }
 function setPrefs(p) {
     if (!p.pattern) p.pattern = prefs.pattern;
+    if (!p.shiftTimes) p.shiftTimes = prefs.shiftTimes;
     prefs = p;
     saveLS('attendance.prefs.v1', prefs);
     render();
@@ -517,7 +543,7 @@ function render() {
     hours = Math.round(hours * 10) / 10;
     var remain = Math.max(0, REQUIRED - worked);
     var over = Math.max(0, worked - REQUIRED);
-    var hoursLeft = Math.max(0, Math.round((REQUIRED * 12 - hours) * 10) / 10);
+    var hoursLeft = Math.max(0, Math.round((REQUIRED * shiftHours('day') - hours) * 10) / 10);
     var pct = Math.min(100, Math.round(worked / REQUIRED * 100));
 
     function cellClass(c) {
@@ -528,7 +554,7 @@ function render() {
         else cls.push('att-c-off');
         if (r) {
             var h = r.type === 'work' ? hoursOf(r.checkIn, r.checkOut) : null;
-            if (h !== null && h >= 12) cls.push('att-c-worked');
+            if (h !== null && h >= shiftHours(c.shift || 'day')) cls.push('att-c-worked');
             else if (h !== null) cls.push('att-c-short');
             else if (r.type === 'work' && (r.checkIn || r.checkOut)) cls.push('att-c-checked');
             else if (r.type === 'sick') cls.push('att-c-sick');
@@ -542,7 +568,7 @@ function render() {
         var r = records[c.key];
         if (r && r.type === 'work') {
             var h = hoursOf(r.checkIn, r.checkOut);
-            if (h !== null) return h >= 12 ? '✓' : t.num(fmtH(h)) + '⚠';
+            if (h !== null) return h >= shiftHours(c.shift || 'day') ? '✓' : t.num(fmtH(h)) + '⚠';
             if (r.checkIn) return '•';
         }
         if (r && r.type === 'sick') return '🤒';
@@ -626,6 +652,12 @@ function render() {
             html += '<button type="button" class="att-btn att-schedbtn ' + (cur === 'night' ? 'att-primary' : 'att-soft') + '" data-act="schedset" data-dow="' + dow + '" data-v="night">' + esc(t.legendNight) + '</button>';
             html += '</div></div>';
         });
+        var st1 = prefs.shiftTimes;
+        html += '<div class="att-schedday" style="margin-top:12px">' + esc(t.timesTitle) + '</div>';
+        html += '<div class="att-timesrow"><span class="att-schedday">' + esc(t.legendDay) + '</span><input type="time" dir="ltr" class="att-time" id="ed-ts-ds" value="' + st1.dayStart + '"><span class="att-schedday">' + esc(t.toL) + '</span><input type="time" dir="ltr" class="att-time" id="ed-ts-de" value="' + st1.dayEnd + '"></div>';
+        html += '<div class="att-timesrow"><span class="att-schedday">' + esc(t.legendNight) + '</span><input type="time" dir="ltr" class="att-time" id="ed-ts-ns" value="' + st1.nightStart + '"><span class="att-schedday">' + esc(t.toL) + '</span><input type="time" dir="ltr" class="att-time" id="ed-ts-ne" value="' + st1.nightEnd + '"></div>';
+        html += '<div class="att-btnrow"><button type="button" class="att-btn att-soft" data-act="savetimes">' + esc(t.saveTimes) + '</button></div>';
+        if (timeMsg) html += '<div class="att-hint">' + esc(timeMsg) + '</div>';
         html += '<div class="att-schedhint">' + esc(t.schedHint) + '</div>';
         html += '</div>';
     }
@@ -647,9 +679,14 @@ function render() {
     /* editor */
     if (openCell) {
         var record = records[openCell.key];
-        if (!ed) ed = { ci: (record && record.checkIn) || '', co: (record && record.checkOut) || '', col: (record && record.colleague) || '', confirmClear: false, err: '' };
+        if (!ed) {
+            var st0 = prefs.shiftTimes;
+            var dS = openCell.shift === 'night' ? st0.nightStart : st0.dayStart;
+            var dE = openCell.shift === 'night' ? st0.nightEnd : st0.dayEnd;
+            ed = { ci: (record && record.checkIn) || (record ? '' : dS), co: (record && record.checkOut) || (record ? '' : dE), col: (record && record.colleague) || '', confirmClear: false, err: '' };
+        }
         var isExtra = openCell.shift === null;
-        var shiftLabel = openCell.shift === 'night' ? t.nightShift + ' · ' + t.nightNote : openCell.shift === 'day' ? t.dayShift : t.extraNote;
+        var shiftLabel = openCell.shift === 'night' ? shiftText(t, 'night') + ' · ' + t.nightNote : openCell.shift === 'day' ? shiftText(t, 'day') : t.extraNote;
         html += '<div class="att-editor">';
         html += '<div class="att-editor-head"><div>';
         html += '<div class="att-editor-title">' + esc(t.dow(openCell.date)) + ' · ' + esc(t.fmtDate(openCell.date)) + '</div>';
@@ -663,9 +700,10 @@ function render() {
         if (ed.err) html += '<div class="att-error">' + esc(ed.err) + '</div>';
         var hh = hoursOf(ed.ci || (record && record.checkIn), ed.co || (record && record.checkOut));
         if (hh !== null) {
+            var expH = shiftHours(openCell.shift || 'day');
             var hs = t.num(fmtH(hh));
-            if (hh >= 12) html += '<div class="att-duration att-du-full">' + esc(hh === 12 ? t.dayFull : t.dayOver(hs, t.num(fmtH(Math.round((hh - 12) * 10) / 10)))) + '</div>';
-            else html += '<div class="att-duration att-du-short">' + esc(t.dayShort(hs, t.hoursWord(t.num(fmtH(Math.round((12 - hh) * 10) / 10))))) + '</div>';
+            if (hh >= expH) html += '<div class="att-duration att-du-full">' + esc(hh === expH ? t.dayFull : t.dayOver(hs, t.num(fmtH(Math.round((hh - expH) * 10) / 10)))) + '</div>';
+            else html += '<div class="att-duration att-du-short">' + esc(t.dayShort(hs, t.hoursWord(t.num(fmtH(Math.round((expH - hh) * 10) / 10))))) + '</div>';
         }
         html += '<div class="att-punchrow">';
         html += '<button type="button" class="att-btn att-primary att-flex att-punch" data-act="pin">' + esc(t.checkIn) + ' ✓</button>';
@@ -722,10 +760,11 @@ function render() {
         var h2 = hoursOf(ed.ci, ed.co);
         if (h2 !== null) {
             var errEl = document.querySelector('.att-error');
+            var expH2 = shiftHours(openCell ? openCell.shift || 'day' : 'day');
             var hs2 = t.num(fmtH(h2));
             var div = document.createElement('div');
-            if (h2 >= 12) { div.className = 'att-duration att-du-full'; div.textContent = h2 === 12 ? t.dayFull : t.dayOver(hs2, t.num(fmtH(Math.round((h2 - 12) * 10) / 10))); }
-            else { div.className = 'att-duration att-du-short'; div.textContent = t.dayShort(hs2, t.hoursWord(t.num(fmtH(Math.round((12 - h2) * 10) / 10)))); }
+            if (h2 >= expH2) { div.className = 'att-duration att-du-full'; div.textContent = h2 === expH2 ? t.dayFull : t.dayOver(hs2, t.num(fmtH(Math.round((h2 - expH2) * 10) / 10))); }
+            else { div.className = 'att-duration att-du-short'; div.textContent = t.dayShort(hs2, t.hoursWord(t.num(fmtH(Math.round((expH2 - h2) * 10) / 10)))); }
             var anchor = errEl || document.querySelector('.att-fields');
             anchor.parentNode.insertBefore(div, anchor.nextSibling);
         }
@@ -776,6 +815,11 @@ function render() {
             else if (act === 'backup') { backupOpen = !backupOpen; render(); }
             else if (act === 'sched') { schedOpen = !schedOpen; render(); }
             else if (act === 'iconsec') { iconOpen = !iconOpen; render(); }
+            else if (act === 'savetimes') {
+                var g = function (id, fb) { var el = document.getElementById(id); var v = el && el.value; return /^\d{2}:\d{2}$/.test(v || '') ? v : fb; };
+                timeMsg = t.timesSaved;
+                setPrefs({ lang: lang, theme: theme, shiftTimes: { dayStart: g('ed-ts-ds', prefs.shiftTimes.dayStart), dayEnd: g('ed-ts-de', prefs.shiftTimes.dayEnd), nightStart: g('ed-ts-ns', prefs.shiftTimes.nightStart), nightEnd: g('ed-ts-ne', prefs.shiftTimes.nightEnd) } });
+            }
             else if (act === 'iconpick') { var fi = document.getElementById('ed-icon'); if (fi) fi.click(); }
             else if (act === 'iconreset') {
                 customIcon = null;
@@ -792,7 +836,7 @@ function render() {
             }
             else if (act === 'export') { exportCycle(t, lang, start, records); }
             else if (act === 'copy') {
-                var text = JSON.stringify({ records: store.records, pattern: prefs.pattern });
+                var text = JSON.stringify({ records: store.records, pattern: prefs.pattern, shiftTimes: prefs.shiftTimes });
                 var done2 = false;
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(text).then(function () { msg = t.copied; render(); }).catch(function () { msg = t.copyBlocked; render(); });
@@ -818,6 +862,7 @@ function render() {
                     store = { records: data.records };
                     saveLS('attendance.v1', store);
                     if (data.pattern && typeof data.pattern === 'object') { prefs.pattern = data.pattern; saveLS('attendance.prefs.v1', prefs); }
+                    if (data.shiftTimes && typeof data.shiftTimes === 'object') { prefs.shiftTimes = data.shiftTimes; saveLS('attendance.prefs.v1', prefs); }
                     restoreText = '';
                     msg = t.restored;
                 } catch (e) { msg = t.badCopy; }
@@ -899,7 +944,7 @@ function exportCycle(t, lang, start, records) {
     for (var d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         var k = keyOf(d), r = records[k];
         var es = effShift(d);
-        var shift = es ? (es === 'night' ? t.nightShift : t.dayShift) : t.xlNone;
+        var shift = es ? shiftText(t, es) : t.xlNone;
         var status = t.xlNone, ci = '', co = '', hrs = '', col = '';
         if (r) {
             if (r.type === 'work') { status = t.xlWork; ci = r.checkIn || ''; co = r.checkOut || ''; var h = hoursOf(r.checkIn, r.checkOut); if (h !== null) hrs = h; }
