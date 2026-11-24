@@ -389,6 +389,9 @@ var STR = {
         monthLbl: 'شهر ', hoursOf: 'ساعات من', daysOf: 'أيام اشتغلتها من',
         cycleNote: function (total, parts, req) { return 'في الشهر ده ' + total + ' يوم في جدولك (' + parts + ') والمطلوب ' + req + '.'; },
         remainStrip: function (remain, req) { return 'فاضل لك ' + remain + ' يوم عشان توصل لـ ' + req; },
+        curCycle: '↩ ارجع للشهر الحالي',
+        cyclePast: function (w, req) { return 'الفترة دي خلصت — اشتغلت ' + w + ' من ' + req + ' يوم'; },
+        cycleFuture: 'الفترة دي لسه جاية',
         calTitle: 'تقويم الفترة', legWorked: 'اشتغلت', legMissed: 'فاتك', legLeave: 'إجازة/مرضي/بدل',
         monthsTitle: 'الشهور: كام يوم شغل في كل شهر', monthsSub: 'الأيام محسوبة من جدولك. الشهور بتتجدد لوحدها مع الوقت، وتقدر تزود أكتر بالأزرار.',
         olderBtn: 'عرض شهور أقدم', needAll: 'لازم تحضر كل الأيام، اشتغلت ', overReq: 'زيادة عن المطلوب ', dayUnit: 'يوم', workedIs: '، اشتغلت ',
@@ -449,6 +452,9 @@ var STR = {
         monthLbl: '', hoursOf: 'hours of', daysOf: 'days worked of',
         cycleNote: function (total, parts, req) { return 'This cycle has ' + total + ' scheduled days (' + parts + '), ' + req + ' required.'; },
         remainStrip: function (remain, req) { return remain + ' days left to reach ' + req; },
+        curCycle: '↩ Back to current cycle',
+        cyclePast: function (w, req) { return 'This cycle ended - worked ' + w + ' of ' + req + ' days'; },
+        cycleFuture: 'This cycle has not started yet',
         calTitle: 'Cycle calendar', legWorked: 'Worked', legMissed: 'Missed', legLeave: 'Leave/Sick/Swap',
         monthsTitle: 'Months: work days per cycle', monthsSub: 'Days are counted from your schedule. New cycles appear automatically.',
         olderBtn: 'Show older months', needAll: 'All days required, worked ', overReq: 'Over required by ', dayUnit: 'days', workedIs: ', worked ',
@@ -803,13 +809,22 @@ function render() {
         h2 += '<div class="att-sumsub">' + esc(t.fromLbl + ' ' + t.fmtDate(start) + ' ' + t.toLbl + ' ' + t.fmtDate(end)) + '</div></div>';
         h2 += '<button type="button" class="att-navbtn2" data-act="next">' + t.next + '</button>';
         h2 += '</div>';
+        if (keyOf(start) !== keyOf(cycleStartFor(new Date()))) {
+            h2 += '<button type="button" class="att-btn att-soft att-block" data-act="curcycle" style="margin-bottom:8px">' + esc(t.curCycle) + '</button>';
+        }
         h2 += '<div class="att-stat2row">';
         h2 += '<div class="att-stat2"><div class="att-stat2-num">' + esc(t.num(fmtH(hours))) + '</div><div class="att-stat2-lbl">' + esc(t.hoursOf + ' ' + t.num(fmtH(targetH))) + '</div></div>';
         h2 += '<div class="att-stat2"><div class="att-stat2-num">' + esc(t.num(worked)) + '</div><div class="att-stat2-lbl">' + esc(t.daysOf + ' ' + t.num(REQUIRED)) + '</div></div>';
         h2 += '</div>';
         h2 += '<div class="att-progress2"><div style="width:' + pct + '%"></div></div>';
         h2 += '<div class="att-cycnote">' + t.cycleNote(t.num(cp.tot), cp.parts, t.num(REQUIRED)) + '</div>';
-        h2 += '<div class="att-remind">' + esc(remain > 0 ? t.remainStrip(t.num(remain), t.num(REQUIRED)) : t.done) + (over > 0 ? ' · +' + esc(t.num(over)) : '') + '</div>';
+        var curStart = cycleStartFor(new Date());
+        var isPastCycle = keyOf(end) < todayKey, isFutureCycle = keyOf(start) > todayKey;
+        var remTxt;
+        if (isPastCycle) remTxt = t.cyclePast(t.num(worked), t.num(REQUIRED));
+        else if (isFutureCycle) remTxt = t.cycleFuture;
+        else remTxt = remain > 0 ? t.remainStrip(t.num(remain), t.num(REQUIRED)) : t.done;
+        h2 += '<div class="att-remind">' + esc(remTxt) + (over > 0 && !isPastCycle ? ' · +' + esc(t.num(over)) : '') + '</div>';
         h2 += '</div>';
         return h2;
     }
@@ -1002,6 +1017,7 @@ function render() {
             else if (act === 'theme') setPrefs({ lang: lang, theme: theme === 'dark' ? 'light' : 'dark' });
             else if (act === 'prev') { viewStart = new Date(start.getFullYear(), start.getMonth() - 1, 16); openKey = null; ed = null; render(); }
             else if (act === 'next') { viewStart = new Date(start.getFullYear(), start.getMonth() + 1, 16); openKey = null; ed = null; render(); }
+            else if (act === 'curcycle') { viewStart = cycleStartFor(new Date()); openKey = todayKey; ed = null; render(); }
             else if (act === 'close') { openKey = null; ed = null; render(); }
             else if (act === 'pin') {
                 var now = nowTime();
@@ -1029,7 +1045,7 @@ function render() {
                 viewStart = new Date(viewStart.getFullYear(), viewStart.getMonth() - offN, 16);
                 tab = 'today'; openKey = null; ed = null; render();
             }
-            else if (act === 'tab') { var ntab = btn.getAttribute('data-tab'); if (ntab !== tab) openKey = null; tab = ntab; if (tab === 'today') openKey = todayKey; ed = null; render(); }
+            else if (act === 'tab') { var ntab = btn.getAttribute('data-tab'); if (ntab !== tab) openKey = null; tab = ntab; if (tab === 'today') { openKey = todayKey; viewStart = cycleStartFor(new Date()); } ed = null; render(); }
             else if (act === 'savetimes') {
                 var g = function (id, fb) { var el = document.getElementById(id); var v = el && el.value; return /^\d{2}:\d{2}$/.test(v || '') ? v : fb; };
                 timeMsg = t.timesSaved;
