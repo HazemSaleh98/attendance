@@ -1104,6 +1104,12 @@ function exportPDF(t, lang, start, records) {
         cx.arcTo(x, y, x + w, y, r);
         cx.closePath();
     }
+    function fitText(str, x, y, maxW, basePx, weight) {
+        var px = basePx;
+        cx.font = (weight ? weight + ' ' : '') + px + 'px system-ui, sans-serif';
+        while (px > 13 && cx.measureText(str).width > maxW) { px -= 1; cx.font = (weight ? weight + ' ' : '') + px + 'px system-ui, sans-serif'; }
+        cx.fillText(str, x, y, maxW);
+    }
     function drawRest(logoImg) {
         if (logoImg) {
             var lx = rtl ? 40 : W - 40 - 96;
@@ -1127,7 +1133,7 @@ function exportPDF(t, lang, start, records) {
             cx.fillText(cards[ci2][1], cx0 + cw / 2, 258);
         }
         var heads = [t.xlHead[0], t.xlHead[1], t.xlHead[2], t.xlHead[3], t.xlHead[4], t.xlHead[5], t.xlHead[6], t.xlHead[7]];
-        var widths = [150, 110, 230, 110, 120, 120, 90, 230];
+        var widths = [120, 120, 300, 110, 100, 100, 80, 230];
         var tableW = widths.reduce(function (a, b) { return a + b; }, 0);
         var x0 = rtl ? W - 40 : 40;
         var y = 320;
@@ -1139,7 +1145,7 @@ function exportPDF(t, lang, start, records) {
             var hx = rtl ? x0 - acc - wcol : x0 + acc;
             cx.fillRect(hx, y, wcol, 46);
             cx.fillStyle = '#ffffff'; cx.textAlign = 'center';
-            cx.fillText(heads[c2], hx + wcol / 2, y + 24);
+            fitText(heads[c2], hx + wcol / 2, y + 24, wcol - 10, 24, 'bold');
             cx.fillStyle = '#0f766e';
             acc += wcol;
         }
@@ -1155,7 +1161,7 @@ function exportPDF(t, lang, start, records) {
                 var hx2 = rtl ? x0 - acc2 - wcol2 : x0 + acc2;
                 cx.fillStyle = c3 === 3 ? stColor : '#1f2937';
                 cx.textAlign = 'center';
-                cx.fillText(String(row[c3]), hx2 + wcol2 / 2, y + 22);
+                fitText(String(row[c3]), hx2 + wcol2 / 2, y + 22, wcol2 - 12, 24);
                 acc2 += wcol2;
             }
             y += 42;
