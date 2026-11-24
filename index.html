@@ -38,7 +38,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial
     color: var(--ink);
     padding: 20px 16px 28px;
     padding-top: max(20px, env(safe-area-inset-top));
-    padding-bottom: max(28px, env(safe-area-inset-bottom));
+    padding-bottom: max(96px, env(safe-area-inset-bottom));
     min-height: 100vh;
     box-sizing: border-box;
     max-width: 600px;
@@ -46,23 +46,23 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial
     transition: background .3s, color .3s;
 }
 .att-root[data-theme="dark"] {
-    --bg: #0d131c;
-    --surface: #161e2b;
-    --surface2: #1e2837;
-    --ink: #eef2f9;
-    --ink2: #93a1bd;
-    --line: #2a3547;
-    --accent: #2dd4a7;
+    --bg: #0c1322;
+    --surface: #151d2f;
+    --surface2: #1c2638;
+    --ink: #eef1f7;
+    --ink2: #8a94a8;
+    --line: #232c42;
+    --accent: #2ee6a8;
     --accent2: #38bdf8;
-    --good: #34d399;
-    --warn: #fbbf24;
-    --info: #a78bfa;
-    --danger: #f87171;
+    --good: #2ee6a8;
+    --warn: #f5b13d;
+    --info: #8b7cf6;
+    --danger: #e05a7a;
     --onaccent: #06281f;
-    --daytint: rgba(245, 158, 11, .18);
-    --dayline: rgba(245, 158, 11, .5);
-    --nighttint: rgba(99, 102, 241, .22);
-    --nightline: rgba(129, 140, 248, .5);
+    --daytint: rgba(245, 177, 61, .14);
+    --dayline: rgba(245, 177, 61, .6);
+    --nighttint: rgba(139, 124, 246, .18);
+    --nightline: rgba(139, 124, 246, .65);
     color-scheme: dark;
 }
 @media (min-width: 768px) {
@@ -206,6 +206,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial
 
 /* sections, backup, footer */
 .att-section { font-size: 14px; font-weight: 700; margin: 20px 2px 10px; }
+.att-more { margin: 12px 2px 8px; font-size: 13px; color: var(--ink2); }
+.att-topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 4px 8px; }
+.att-tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; gap: 4px; background: var(--surface); border-top: 1px solid var(--line); padding: 8px 10px calc(10px + env(safe-area-inset-bottom)); }
+.att-tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; color: var(--ink2); font: inherit; font-size: 11px; font-weight: 700; padding: 7px 0; border-radius: 12px; cursor: pointer; }
+.att-tab.att-tab-on { color: var(--accent); background: var(--nighttint); }
+.att-tab-ic { font-size: 18px; line-height: 1; }
+.att-big { width: 100%; min-height: 58px; font-size: 17px; margin-bottom: 10px; }
+.att-loglist { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.att-logrow { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; font: inherit; color: var(--ink); cursor: pointer; text-align: start; width: 100%; }
+.att-logrow-date { font-weight: 700; font-size: 13px; min-width: 70px; }
+.att-logrow-info { flex: 1; font-size: 12px; color: var(--ink2); }
+.att-logrow-times { font-size: 12px; direction: ltr; color: var(--ink); }
 .att-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; transition: background .3s; }
 .att-schedrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 0; }
 .att-schedrow + .att-schedrow { border-top: 1px dashed var(--line); }
@@ -236,6 +248,47 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial
     from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* reskin: reference look */
+.att-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; margin-top: 14px; }
+.att-topbar { padding: 16px 2px 4px; }
+.att-hero-title { font-size: 19px; }
+.att-tab.att-tab-on { color: var(--info); background: var(--nighttint); }
+.att-big { width: 100%; min-height: 58px; font-size: 17px; font-weight: 800; border-radius: 14px; background: var(--accent); color: var(--onaccent); border: none; cursor: pointer; font-family: inherit; }
+.att-big:active { transform: scale(.98); }
+.att-todaycard .att-big { margin-top: 12px; }
+.att-todaytitle { font-size: 17px; font-weight: 800; }
+.att-todaysub { font-size: 13px; color: var(--ink2); margin-top: 4px; }
+.att-sumcard .att-monthrow2 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.att-sumtitle { font-size: 16px; font-weight: 800; }
+.att-navbtn2 { min-width: 40px; min-height: 38px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface2); color: var(--ink); font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+.att-sumsub { font-size: 12px; color: var(--ink2); text-align: center; margin-top: 4px; }
+.att-stat2row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.att-stat2 { background: var(--surface2); border: 1px solid var(--line); border-radius: 14px; padding: 14px 10px; text-align: center; }
+.att-stat2-num { font-size: 22px; font-weight: 800; }
+.att-stat2-lbl { font-size: 11px; color: var(--ink2); margin-top: 4px; }
+.att-progress2 { height: 8px; border-radius: 99px; background: var(--surface2); overflow: hidden; margin-top: 14px; }
+.att-progress2 > div { height: 100%; border-radius: 99px; background: var(--accent); }
+.att-cycnote { font-size: 12px; color: var(--ink2); margin-top: 10px; line-height: 1.7; }
+.att-remind { margin-top: 12px; background: var(--surface2); border-radius: 12px; padding: 12px 14px; font-size: 13px; font-weight: 700; border-inline-start: 4px solid var(--info); }
+.att-caltitle { font-size: 15px; font-weight: 800; margin-bottom: 12px; }
+.att-legendrow { display: flex; flex-wrap: wrap; gap: 10px 14px; margin-top: 12px; font-size: 11px; color: var(--ink2); align-items: center; }
+.att-legsq { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; }
+.att-c-day { background: transparent; border: 1.5px solid var(--dayline); }
+.att-c-night { background: transparent; border: 1.5px solid var(--nightline); }
+.att-c-missed { border: 1.5px dashed var(--danger); }
+.att-c-today { box-shadow: inset 0 0 0 2px var(--ink); border-radius: 14px; }
+.att-monthcard { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; margin-top: 12px; width: 100%; font: inherit; color: var(--ink); cursor: pointer; text-align: start; }
+.att-mc-num { font-size: 26px; font-weight: 800; min-width: 52px; text-align: center; }
+.att-mc-num small { display: block; font-size: 11px; font-weight: 600; color: var(--ink2); }
+.att-mc-body { flex: 1; }
+.att-mc-range { font-size: 14px; font-weight: 800; }
+.att-mc-sched { font-size: 11px; color: var(--ink2); margin-top: 3px; }
+.att-mc-status { font-size: 11px; color: var(--ink2); margin-top: 3px; }
+.att-olderbtn { width: 100%; margin-top: 14px; background: transparent; border: 1.5px dashed var(--line); border-radius: 14px; padding: 13px; color: var(--ink2); font: inherit; font-weight: 700; cursor: pointer; }
+.att-monthshead { font-size: 16px; font-weight: 800; margin-top: 10px; }
+.att-monthssub { font-size: 12px; color: var(--ink2); margin-top: 6px; line-height: 1.8; }
+.att-editor { border-radius: 18px; }
 </style>
 </head>
 <body>
@@ -328,6 +381,17 @@ var STR = {
         timesTitle: 'مواعيد الشيفتات', toL: 'لـ', saveTimes: 'حفظ المواعيد', timesSaved: 'اتحفظت ✅',
         pdfBtn: '⬇ تصدير PDF', namePh: 'الاسم على التقرير',
         extraNote: 'يوم مش من أيامك، بيتحسب شيفت بدل',
+        settings: 'الإعدادات', moreOpts: 'خيارات أكتر',
+        tabToday: 'النهارده', tabMonths: 'الشهور', tabLog: 'السجل', tabSettings: 'الإعدادات', logEmpty: 'مفيش تسجيلات لسه في الشهر ده',
+        punchIn: 'تسجيل دخول (In)', punchOut: 'تسجيل خروج (Out)',
+        todayLbl: 'النهارده', fromLbl: 'من', toLbl: 'إلى',
+        offToday: 'مش من أيام جدولك 🌴', workToday: 'يوم شغلك 💪',
+        monthLbl: 'شهر ', hoursOf: 'ساعات من', daysOf: 'أيام اشتغلتها من',
+        cycleNote: function (total, parts, req) { return 'في الشهر ده ' + total + ' يوم في جدولك (' + parts + ') والمطلوب ' + req + '.'; },
+        remainStrip: function (remain, req) { return 'فاضل لك ' + remain + ' يوم عشان توصل لـ ' + req; },
+        calTitle: 'تقويم الفترة', legWorked: 'اشتغلت', legMissed: 'فاتك', legLeave: 'إجازة/مرضي/بدل',
+        monthsTitle: 'الشهور: كام يوم شغل في كل شهر', monthsSub: 'الأيام محسوبة من جدولك. الشهور بتتجدد لوحدها مع الوقت، وتقدر تزود أكتر بالأزرار.',
+        olderBtn: 'عرض شهور أقدم', needAll: 'لازم تحضر كل الأيام، اشتغلت ', overReq: 'زيادة عن المطلوب ', dayUnit: 'يوم', workedIs: '، اشتغلت ',
         todayWork: 'يوم شغلك النهارده 💪 سجّل حضورك', todayOff: 'خد راحتك النهارده يا بطل 🌴 لو هتشتغل، سجّلها كبدل تحت',
         needTime: 'سجل وقت حضور أو انصراف الأول',
         backup: 'نسخة احتياطية',
@@ -377,6 +441,17 @@ var STR = {
         timesTitle: 'Shift times', toL: 'to', saveTimes: 'Save times', timesSaved: 'Saved ✅',
         pdfBtn: '⬇ Export PDF', namePh: 'Name on the report',
         extraNote: 'not one of your days, counts as a swap',
+        settings: 'Settings', moreOpts: 'More options',
+        tabToday: 'Today', tabMonths: 'Months', tabLog: 'Log', tabSettings: 'Settings', logEmpty: 'No entries yet this cycle',
+        punchIn: 'Check in', punchOut: 'Check out',
+        todayLbl: 'Today', fromLbl: 'from', toLbl: 'to',
+        offToday: 'Not one of your schedule days 🌴', workToday: 'Work day 💪',
+        monthLbl: '', hoursOf: 'hours of', daysOf: 'days worked of',
+        cycleNote: function (total, parts, req) { return 'This cycle has ' + total + ' scheduled days (' + parts + '), ' + req + ' required.'; },
+        remainStrip: function (remain, req) { return remain + ' days left to reach ' + req; },
+        calTitle: 'Cycle calendar', legWorked: 'Worked', legMissed: 'Missed', legLeave: 'Leave/Sick/Swap',
+        monthsTitle: 'Months: work days per cycle', monthsSub: 'Days are counted from your schedule. New cycles appear automatically.',
+        olderBtn: 'Show older months', needAll: 'All days required, worked ', overReq: 'Over required by ', dayUnit: 'days', workedIs: ', worked ',
         todayWork: 'Work day 💪 Log your attendance', todayOff: 'Enjoy your day off, champ 🌴 Working anyway? Log it as a swap below',
         needTime: 'Enter a check-in or check-out time first',
         backup: 'Backup',
@@ -421,6 +496,10 @@ var viewStart = cycleStartFor(new Date());
 var openKey = keyOf(new Date());
 var firstRender = true;
 var backupOpen = false;
+var settingsOpen = false;
+var tab = 'today';
+var monthsBack = 2;
+var moreOpen = false;
 var schedOpen = false;
 var iconOpen = false;
 var iconMsg = '';
@@ -572,6 +651,7 @@ function render() {
         if (c.shift === 'day') cls.push('att-c-day');
         else if (c.shift === 'night') cls.push('att-c-night');
         else cls.push('att-c-off');
+        if (!r && c.shift && c.key < todayKey) cls.push('att-c-missed');
         if (r) {
             var h = r.type === 'work' ? hoursOf(r.checkIn, r.checkOut) : null;
             if (h !== null && h >= shiftHours(c.shift || 'day')) cls.push('att-c-worked');
@@ -610,51 +690,198 @@ function render() {
     ];
 
     var html = '';
-    html += '<div class="att-hero">';
-    html += '<div class="att-hero-top"><div class="att-hero-title">' + esc(t.title) + '</div>';
+    html += '<div class="att-topbar">';
+    html += '<div class="att-hero-title">' + esc(t.title) + '</div>';
     html += '<div class="att-toggles">';
     html += '<button type="button" class="att-toggle" data-act="lang">' + (lang === 'ar' ? 'EN' : 'ع') + '</button>';
     html += '<button type="button" class="att-toggle" data-act="theme">' + (theme === 'dark' ? '☀️' : '🌙') + '</button>';
     html += '</div></div>';
-    html += '<div class="att-hero-sub">' + esc(t.hello(t.num(total))) + '</div>';
-    html += '<div class="att-monthrow">';
-    html += '<button type="button" class="att-navbtn" data-act="prev">' + t.prev + '</button>';
-    html += '<div class="att-month">' + esc(t.cycleTitle(start, end)) + '</div>';
-    html += '<button type="button" class="att-navbtn" data-act="next">' + t.next + '</button>';
-    html += '</div>';
-    html += '<div class="att-progress" aria-hidden="true"><div style="width:' + pct + '%"></div></div>';
-    html += '<div class="att-progress-label">' + esc(remain > 0 ? t.remainingH(t.num(remain), t.num(fmtH(hoursLeft))) : t.done) + (over > 0 ? ' · +' + esc(t.num(over)) : '') + '</div>';
-    html += '</div>';
 
-    html += '<div class="att-stats">';
-    stats.forEach(function (s) {
-        html += '<div class="att-stat"><div class="att-stat-num ' + s.tone + '">' + esc(s.value) + '</div><div class="att-stat-label">' + esc(s.label) + '</div></div>';
-    });
-    html += '</div>';
+    function editorInner(cell, minimal) {
+        var record = records[cell.key];
+        if (!ed) {
+            var st0 = prefs.shiftTimes;
+            var dS = cell.shift === 'night' ? st0.nightStart : st0.dayStart;
+            var dE = cell.shift === 'night' ? st0.nightEnd : st0.dayEnd;
+            ed = { ci: (record && record.checkIn) || (record ? '' : dS), co: (record && record.checkOut) || (record ? '' : dE), col: (record && record.colleague) || '', confirmClear: false, err: '' };
+        }
+        var hasIn = record && record.checkIn, hasOut = record && record.checkOut;
+        var h2 = '';
+        if (!hasIn) h2 += '<button type="button" class="att-big" data-act="pin">' + esc(t.punchIn) + '</button>';
+        else h2 += '<button type="button" class="att-big" data-act="pout">' + esc(t.punchOut) + '</button>';
+        var hh = hoursOf(ed.ci || (record && record.checkIn), ed.co || (record && record.checkOut));
+        if (hh !== null && !minimal) {
+            var expH = shiftHours(cell.shift || 'day');
+            var hs = t.num(fmtH(hh));
+            if (hh >= expH) h2 += '<div class="att-duration att-du-full">' + esc(hh === expH ? t.dayFull : t.dayOver(hs, t.num(fmtH(Math.round((hh - expH) * 10) / 10)))) + '</div>';
+            else h2 += '<div class="att-duration att-du-short">' + esc(t.dayShort(hs, t.hoursWord(t.num(fmtH(Math.round((expH - hh) * 10) / 10))))) + '</div>';
+        }
+        h2 += '<button type="button" class="att-section att-section-toggle att-more" data-act="more" aria-expanded="' + moreOpen + '"><span class="' + (moreOpen ? 'att-caret att-caret-open' : 'att-caret') + '">▾</span>' + esc(t.moreOpts) + '</button>';
+        if (moreOpen) {
+        h2 += '<div class="att-fields">';
+        h2 += '<div class="att-field"><label class="att-label">' + esc(t.checkIn) + '</label><input type="time" dir="ltr" class="att-time att-full" id="ed-ci" value="' + esc(ed.ci) + '"></div>';
+        h2 += '<div class="att-field"><label class="att-label">' + esc(t.checkOut) + '</label><input type="time" dir="ltr" class="att-time att-full" id="ed-co" value="' + esc(ed.co) + '"></div>';
+        h2 += '</div>';
+        if (ed.err) h2 += '<div class="att-error">' + esc(ed.err) + '</div>';
+        h2 += '<div class="att-or">' + esc(t.orManual) + '</div>';
+        h2 += '<button type="button" class="att-btn att-ghost att-block" data-act="save">' + esc(t.save) + '</button>';
+        h2 += '<div class="att-btnrow">';
+        h2 += '<button type="button" class="att-btn att-soft att-flex" data-act="sick">' + esc(t.markSick) + '</button>';
+        h2 += '<button type="button" class="att-btn att-soft att-flex" data-act="swap">' + esc(t.markSwap) + '</button>';
+        h2 += '</div>';
+        h2 += '<input type="text" class="att-text" id="ed-col" placeholder="' + esc(t.colleague) + '" value="' + esc(ed.col) + '">';
+        if (record) {
+            h2 += '<div class="att-btnrow">';
+            if (ed.confirmClear) h2 += '<button type="button" class="att-btn att-danger" data-act="doclear">' + esc(t.confirmClear) + '</button>';
+            else h2 += '<button type="button" class="att-btn att-ghost" data-act="clear">' + esc(t.clear) + '</button>';
+            h2 += '</div>';
+        }
+        }
+        return h2;
+    }
 
-    html += '<div class="att-taphint">' + esc(t.tapHint) + '</div>';
+    function todayCell() {
+        var cell = null;
+        segs.forEach(function (s) { s.cells.forEach(function (c) { if (c && c.key === todayKey) cell = c; }); });
+        if (!cell) cell = { key: todayKey, date: new Date(), shift: effShift(new Date()) };
+        return cell;
+    }
 
-    segs.forEach(function (s) {
-        html += '<div class="att-monthblock">';
-        html += '<div class="att-monthtitle">' + esc(t.monthYear(new Date(s.seg.year, s.seg.month, 1))) + '</div>';
-        html += '<div class="att-weekrow">';
-        t.weekdays.forEach(function (w) { html += '<div class="att-weekday">' + esc(w) + '</div>'; });
-        html += '</div><div class="att-grid">';
-        s.cells.forEach(function (c, i) {
-            if (c === null) { html += '<div class="att-cell att-c-blank"></div>'; return; }
-            html += '<button type="button" class="' + cellClass(c) + '" data-day="' + c.key + '">';
-            html += '<span class="att-cellnum">' + esc(t.num(c.date.getDate())) + '</span>';
-            html += '<span class="att-cellmark">' + esc(cellMark(c)) + '</span>';
+    function todayCardHtml() {
+        var cell = todayCell();
+        openCell = cell; openKey = cell.key;
+        var h2 = '<div class="att-card att-todaycard">';
+        h2 += '<div class="att-todaytitle">' + esc(t.todayLbl + ' ' + t.dow(cell.date)) + '</div>';
+        h2 += '<div class="att-todaysub">' + esc(cell.shift ? t.workToday : t.offToday) + '</div>';
+        h2 += editorInner(cell, true);
+        h2 += '</div>';
+        return h2;
+    }
+
+    function editorCardHtml() {
+        var cell = openCell;
+        if (!cell) { ed = null; return ''; }
+        var shiftLabel = cell.shift === 'night' ? shiftText(t, 'night') + ' · ' + t.nightNote : cell.shift === 'day' ? shiftText(t, 'day') : t.extraNote;
+        var h2 = '<div class="att-card att-editor">';
+        h2 += '<div class="att-editor-head"><div>';
+        h2 += '<div class="att-editor-title">' + esc(t.dow(cell.date)) + ' · ' + esc(t.fmtDate(cell.date)) + '</div>';
+        h2 += '<div class="att-editor-sub">' + esc(shiftLabel) + '</div>';
+        h2 += '</div>';
+        h2 += '<button type="button" class="att-iconbtn" data-act="close" aria-label="' + esc(t.close) + '">✕</button></div>';
+        if (cell.key === todayKey) h2 += '<div class="att-todayban">' + esc(cell.shift ? t.todayWork : t.todayOff) + '</div>';
+        h2 += editorInner(cell, false);
+        h2 += '</div>';
+        return h2;
+    }
+
+    function cycleParts(cs) {
+        var counts = {};
+        var tot = 0, wkd = 0;
+        var ce = cycleEnd(cs);
+        monthSegments(cs).forEach(function (seg) {
+            buildCells(seg).forEach(function (c) {
+                if (!c) return;
+                if (c.shift) { tot++; counts[c.date.getDay()] = (counts[c.date.getDay()] || 0) + 1; }
+                var r = records[c.key];
+                if (r && r.type === 'work' && (r.checkIn || r.checkOut) && (c.shift || r.extra)) wkd++;
+                else if (r && r.type === 'swap' && (c.shift || r.extra)) wkd++;
+            });
+        });
+        var parts = Object.keys(counts).sort().map(function (dow) {
+            return esc(t.dow(new Date(2024, 0, 7 + Number(dow))).replace(/^ال/, '')) + ' ' + t.num(counts[dow]);
+        }).join('، ');
+        return { tot: tot, wkd: wkd, parts: parts };
+    }
+
+    function summaryCardHtml() {
+        var cp = cycleParts(start);
+        var targetH = Math.round(REQUIRED * shiftHours('day') * 10) / 10;
+        var h2 = '<div class="att-card att-sumcard">';
+        h2 += '<div class="att-monthrow2">';
+        h2 += '<button type="button" class="att-navbtn2" data-act="prev">' + t.prev + '</button>';
+        h2 += '<div><div class="att-sumtitle">' + esc(t.monthLbl + t.monthYear(end)) + '</div>';
+        h2 += '<div class="att-sumsub">' + esc(t.fromLbl + ' ' + t.fmtDate(start) + ' ' + t.toLbl + ' ' + t.fmtDate(end)) + '</div></div>';
+        h2 += '<button type="button" class="att-navbtn2" data-act="next">' + t.next + '</button>';
+        h2 += '</div>';
+        h2 += '<div class="att-stat2row">';
+        h2 += '<div class="att-stat2"><div class="att-stat2-num">' + esc(t.num(fmtH(hours))) + '</div><div class="att-stat2-lbl">' + esc(t.hoursOf + ' ' + t.num(fmtH(targetH))) + '</div></div>';
+        h2 += '<div class="att-stat2"><div class="att-stat2-num">' + esc(t.num(worked)) + '</div><div class="att-stat2-lbl">' + esc(t.daysOf + ' ' + t.num(REQUIRED)) + '</div></div>';
+        h2 += '</div>';
+        h2 += '<div class="att-progress2"><div style="width:' + pct + '%"></div></div>';
+        h2 += '<div class="att-cycnote">' + t.cycleNote(t.num(cp.tot), cp.parts, t.num(REQUIRED)) + '</div>';
+        h2 += '<div class="att-remind">' + esc(remain > 0 ? t.remainStrip(t.num(remain), t.num(REQUIRED)) : t.done) + (over > 0 ? ' · +' + esc(t.num(over)) : '') + '</div>';
+        h2 += '</div>';
+        return h2;
+    }
+
+    function calendarCardHtml() {
+        var h2 = '<div class="att-card att-calcard">';
+        h2 += '<div class="att-caltitle">' + esc(t.calTitle) + '</div>';
+        segs.forEach(function (s) {
+            h2 += '<div class="att-monthblock">';
+            h2 += '<div class="att-monthtitle">' + esc(t.monthYear(new Date(s.seg.year, s.seg.month, 1))) + '</div>';
+            h2 += '<div class="att-weekrow">';
+            t.weekdays.forEach(function (w) { h2 += '<div class="att-weekday">' + esc(w) + '</div>'; });
+            h2 += '</div><div class="att-grid">';
+            s.cells.forEach(function (c, i) {
+                if (c === null) { h2 += '<div class="att-cell att-c-blank"></div>'; return; }
+                h2 += '<button type="button" class="' + cellClass(c) + '" data-day="' + c.key + '">';
+                h2 += '<span class="att-cellnum">' + esc(t.num(c.date.getDate())) + '</span>';
+                h2 += '<span class="att-cellmark">' + esc(cellMark(c)) + '</span>';
+                h2 += '</button>';
+            });
+            h2 += '</div></div>';
+        });
+        h2 += '<div class="att-legendrow">';
+        h2 += '<span>☀️ ' + esc(t.legendDay) + '</span><span>🌙 ' + esc(t.legendNight) + '</span>';
+        h2 += '<span><span class="att-legsq" style="background:var(--accent)"></span>' + esc(t.legWorked) + '</span>';
+        h2 += '<span><span class="att-legsq" style="border:1.5px dashed var(--danger)"></span>' + esc(t.legMissed) + '</span>';
+        h2 += '<span><span class="att-legsq" style="background:var(--info)"></span>' + esc(t.legLeave) + '</span>';
+        h2 += '</div></div>';
+        return h2;
+    }
+
+    if (tab === 'today') {
+        var cur = todayKey >= keyOf(start) && todayKey <= keyOf(end);
+        if (openKey && openKey !== todayKey) html += editorCardHtml();
+        else if (cur) html += todayCardHtml();
+        else ed = null;
+        html += summaryCardHtml();
+        html += calendarCardHtml();
+    } else if (tab === 'months') {
+        html += '<div class="att-monthshead">' + esc(t.monthsTitle) + '</div>';
+        html += '<div class="att-monthssub">' + esc(t.monthsSub) + '</div>';
+        html += '<button type="button" class="att-olderbtn" data-act="older">' + esc(t.olderBtn) + '</button>';
+        for (var off = 0; off <= monthsBack; off++) {
+            var cs = new Date(viewStart.getFullYear(), viewStart.getMonth() - off, 16);
+            var ce2 = cycleEnd(cs);
+            var cp2 = cycleParts(cs);
+            var status = cp2.tot > REQUIRED ? t.overReq + t.num(cp2.tot - REQUIRED) + ' ' + t.dayUnit + t.workedIs + t.num(cp2.wkd) : t.needAll + t.num(cp2.wkd);
+            html += '<button type="button" class="att-monthcard" data-act="monthcard" data-off="' + off + '">';
+            html += '<span class="att-mc-num">' + esc(t.num(cp2.tot)) + '<small>' + esc(t.dayUnit) + '</small></span>';
+            html += '<span class="att-mc-body"><span class="att-mc-range">' + esc(t.fmtDate(cs) + ' ← ' + t.fmtDate(ce2) + ' ' + t.num(ce2.getFullYear())) + '</span>';
+            html += '<span class="att-mc-sched">' + cp2.parts + '</span>';
+            html += '<span class="att-mc-status">' + esc(status) + '</span></span>';
+            html += '</button>';
+        }
+    } else if (tab === 'log') {
+        html += '<div class="att-section">' + esc(t.tabLog) + '</div>';
+        var logCells = [];
+        segs.forEach(function (s) { s.cells.forEach(function (c) { if (c && records[c.key]) logCells.push(c); }); });
+        if (!logCells.length) html += '<div class="att-taphint">' + esc(t.logEmpty) + '</div>';
+        html += '<div class="att-loglist">';
+        logCells.forEach(function (c) {
+            var r = records[c.key];
+            var st = r.type === 'work' ? t.xlWork : r.type === 'sick' ? t.xlSick : t.xlSwap;
+            var times = r.type === 'work' ? (r.checkIn || '—') + ' → ' + (r.checkOut || '—') : (r.type === 'swap' && r.colleague ? r.colleague : '');
+            html += '<button type="button" class="att-logrow" data-day="' + c.key + '">';
+            html += '<span class="att-logrow-date">' + esc(t.fmtDate(c.date)) + '</span>';
+            html += '<span class="att-logrow-info">' + esc(t.dow(c.date)) + ' · ' + esc(st) + '</span>';
+            html += '<span class="att-logrow-times">' + esc(times) + '</span>';
             html += '</button>';
         });
-        html += '</div></div>';
-    });
-
-    html += '<div class="att-legend">';
-    html += '<span class="att-leg"><span class="att-dot att-d-day"></span>' + esc(t.legendDay) + '</span>';
-    html += '<span class="att-leg"><span class="att-dot att-d-night"></span>' + esc(t.legendNight) + '</span>';
-    html += '</div>';
-
+        html += '</div>';
+    } else if (tab === 'settings') {
     html += '<div style="margin:12px 0 4px"><input type="text" class="att-text" id="ed-name" placeholder="' + esc(t.namePh) + '" value="' + esc(prefs.workerName || '') + '" style="margin-bottom:8px"></div>';
     html += '<div class="att-btnrow" style="margin-top:0"><button type="button" class="att-btn att-soft att-flex" data-act="export">' + esc(t.exportBtn) + '</button><button type="button" class="att-btn att-soft att-flex" data-act="exportpdf">' + esc(t.pdfBtn) + '</button></div>';
 
@@ -664,13 +891,13 @@ function render() {
     if (schedOpen) {
         html += '<div class="att-card">';
         WEEK_ORDER.forEach(function (dow) {
-            var cur = prefs.pattern[dow];
+            var cur2 = prefs.pattern[dow];
             var dd = new Date(2024, 0, 7 + dow);
             html += '<div class="att-schedrow">';
             html += '<div class="att-schedday">' + esc(t.dow(dd)) + '</div>';
             html += '<div class="att-schedbtns">';
-            html += '<button type="button" class="att-btn att-schedbtn ' + (cur === 'day' ? 'att-primary' : 'att-soft') + '" data-act="schedset" data-dow="' + dow + '" data-v="day">' + esc(t.legendDay) + '</button>';
-            html += '<button type="button" class="att-btn att-schedbtn ' + (cur === 'night' ? 'att-primary' : 'att-soft') + '" data-act="schedset" data-dow="' + dow + '" data-v="night">' + esc(t.legendNight) + '</button>';
+            html += '<button type="button" class="att-btn att-schedbtn ' + (cur2 === 'day' ? 'att-primary' : 'att-soft') + '" data-act="schedset" data-dow="' + dow + '" data-v="day">' + esc(t.legendDay) + '</button>';
+            html += '<button type="button" class="att-btn att-schedbtn ' + (cur2 === 'night' ? 'att-primary' : 'att-soft') + '" data-act="schedset" data-dow="' + dow + '" data-v="night">' + esc(t.legendNight) + '</button>';
             html += '</div></div>';
         });
         var st1 = prefs.shiftTimes;
@@ -697,58 +924,6 @@ function render() {
         html += '</div>';
     }
 
-    /* editor */
-    if (openCell) {
-        var record = records[openCell.key];
-        if (!ed) {
-            var st0 = prefs.shiftTimes;
-            var dS = openCell.shift === 'night' ? st0.nightStart : st0.dayStart;
-            var dE = openCell.shift === 'night' ? st0.nightEnd : st0.dayEnd;
-            ed = { ci: (record && record.checkIn) || (record ? '' : dS), co: (record && record.checkOut) || (record ? '' : dE), col: (record && record.colleague) || '', confirmClear: false, err: '' };
-        }
-        var isExtra = openCell.shift === null;
-        var shiftLabel = openCell.shift === 'night' ? shiftText(t, 'night') + ' · ' + t.nightNote : openCell.shift === 'day' ? shiftText(t, 'day') : t.extraNote;
-        html += '<div class="att-editor">';
-        html += '<div class="att-editor-head"><div>';
-        html += '<div class="att-editor-title">' + esc(t.dow(openCell.date)) + ' · ' + esc(t.fmtDate(openCell.date)) + '</div>';
-        html += '<div class="att-editor-sub">' + esc(shiftLabel) + '</div>';
-        html += '</div>';
-        html += '<button type="button" class="att-iconbtn" data-act="close" aria-label="' + esc(t.close) + '">✕</button></div>';
-        if (keyOf(openCell.date) === keyOf(new Date())) html += '<div class="att-todayban">' + esc(openCell.shift ? t.todayWork : t.todayOff) + '</div>';
-        html += '<div class="att-fields">';
-        html += '<div class="att-field"><label class="att-label">' + esc(t.checkIn) + '</label><input type="time" dir="ltr" class="att-time att-full" id="ed-ci" value="' + esc(ed.ci) + '"></div>';
-        html += '<div class="att-field"><label class="att-label">' + esc(t.checkOut) + '</label><input type="time" dir="ltr" class="att-time att-full" id="ed-co" value="' + esc(ed.co) + '"></div>';
-        html += '</div>';
-        if (ed.err) html += '<div class="att-error">' + esc(ed.err) + '</div>';
-        var hh = hoursOf(ed.ci || (record && record.checkIn), ed.co || (record && record.checkOut));
-        if (hh !== null) {
-            var expH = shiftHours(openCell.shift || 'day');
-            var hs = t.num(fmtH(hh));
-            if (hh >= expH) html += '<div class="att-duration att-du-full">' + esc(hh === expH ? t.dayFull : t.dayOver(hs, t.num(fmtH(Math.round((hh - expH) * 10) / 10)))) + '</div>';
-            else html += '<div class="att-duration att-du-short">' + esc(t.dayShort(hs, t.hoursWord(t.num(fmtH(Math.round((expH - hh) * 10) / 10))))) + '</div>';
-        }
-        html += '<div class="att-punchrow">';
-        html += '<button type="button" class="att-btn att-primary att-flex att-punch" data-act="pin">' + esc(t.checkIn) + ' ✓</button>';
-        html += '<button type="button" class="att-btn att-soft att-flex att-punch" data-act="pout">' + esc(t.checkOut) + '</button>';
-        html += '</div>';
-        html += '<div class="att-or">' + esc(t.orManual) + '</div>';
-        html += '<button type="button" class="att-btn att-ghost att-block" data-act="save">' + esc(t.save) + '</button>';
-        html += '<div class="att-btnrow">';
-        html += '<button type="button" class="att-btn att-soft att-flex" data-act="sick">' + esc(t.markSick) + '</button>';
-        html += '<button type="button" class="att-btn att-soft att-flex" data-act="swap">' + esc(t.markSwap) + '</button>';
-        html += '</div>';
-        html += '<input type="text" class="att-text" id="ed-col" placeholder="' + esc(t.colleague) + '" value="' + esc(ed.col) + '">';
-        if (record) {
-            html += '<div class="att-btnrow">';
-            if (ed.confirmClear) html += '<button type="button" class="att-btn att-danger" data-act="doclear">' + esc(t.confirmClear) + '</button>';
-            else html += '<button type="button" class="att-btn att-ghost" data-act="clear">' + esc(t.clear) + '</button>';
-            html += '</div>';
-        }
-        html += '</div>';
-    } else {
-        ed = null;
-    }
-
     /* backup */
     html += '<button type="button" class="att-section att-section-toggle" data-act="backup" aria-expanded="' + backupOpen + '">';
     html += '<span class="' + (backupOpen ? 'att-caret att-caret-open' : 'att-caret') + '">▾</span>' + esc(t.backup) + '</button>';
@@ -760,8 +935,15 @@ function render() {
         if (msg) html += '<div class="att-hint">' + esc(msg) + '</div>';
         html += '</div>';
     }
+    }
 
     html += '<div class="att-footer" dir="ltr">' + esc(t.footer) + '</div>';
+
+    html += '<div class="att-tabbar">';
+    [['today', '🕐', t.tabToday], ['months', '📅', t.tabMonths], ['log', '☰', t.tabLog], ['settings', '⚙', t.tabSettings]].forEach(function (tb) {
+        html += '<button type="button" class="att-tab' + (tab === tb[0] ? ' att-tab-on' : '') + '" data-act="tab" data-tab="' + tb[0] + '"><span class="att-tab-ic">' + tb[1] + '</span>' + esc(tb[2]) + '</button>';
+    });
+    html += '</div>';
 
     var root = document.getElementById('app');
     root.innerHTML = '<div class="att-root" data-theme="' + theme + '" dir="' + t.dir + '">' + html + '</div>';
@@ -839,6 +1021,15 @@ function render() {
             else if (act === 'backup') { backupOpen = !backupOpen; render(); }
             else if (act === 'sched') { schedOpen = !schedOpen; render(); }
             else if (act === 'iconsec') { iconOpen = !iconOpen; render(); }
+            else if (act === 'settings') { settingsOpen = !settingsOpen; render(); }
+            else if (act === 'more') { moreOpen = !moreOpen; render(); }
+            else if (act === 'older') { monthsBack += 3; render(); }
+            else if (act === 'monthcard') {
+                var offN = Number(btn.getAttribute('data-off')) || 0;
+                viewStart = new Date(viewStart.getFullYear(), viewStart.getMonth() - offN, 16);
+                tab = 'today'; openKey = null; ed = null; render();
+            }
+            else if (act === 'tab') { var ntab = btn.getAttribute('data-tab'); if (ntab !== tab) openKey = null; tab = ntab; if (tab === 'today') openKey = todayKey; ed = null; render(); }
             else if (act === 'savetimes') {
                 var g = function (id, fb) { var el = document.getElementById(id); var v = el && el.value; return /^\d{2}:\d{2}$/.test(v || '') ? v : fb; };
                 timeMsg = t.timesSaved;
@@ -900,7 +1091,8 @@ function render() {
     root.querySelectorAll('[data-day]').forEach(function (cell) {
         cell.addEventListener('click', function () {
             var k = cell.getAttribute('data-day');
-            openKey = openKey === k ? null : k;
+            if (tab === 'log') { tab = 'today'; openKey = k; }
+            else openKey = openKey === k ? null : k;
             ed = null;
             msg = '';
             render();
