@@ -332,6 +332,8 @@ var STR = {
         exportBtn: '⬇ تصدير Excel',
         xlHead: ['التاريخ', 'اليوم', 'الشيفت', 'الحالة', 'الحضور', 'الانصراف', 'الساعات', 'الزميل'],
         xlWork: 'عمل', xlSick: 'مرضي', xlSwap: 'بدل', xlNone: '-',
+        xlSumDays: 'إجمالي الأيام', xlSumHours: 'إجمالي الساعات', xlTargetDays: 'الأيام المطلوبة', xlTargetHours: 'الساعات المطلوبة',
+        xlShort: 'التقصير', xlOver: 'زيادة', xlHourU: 'ساعة', xlDayU: 'يوم',
         footer: '© Hazem Saleh',
         weekdays: ['س', 'ح', 'ن', 'ث', 'ر', 'خ', 'ج'],
         monthYear: function (d) { return MONTHS_AR[d.getMonth()] + ' ' + arDigits(d.getFullYear()); },
@@ -377,6 +379,8 @@ var STR = {
         exportBtn: '⬇ Export Excel',
         xlHead: ['Date', 'Day', 'Shift', 'Status', 'Check-in', 'Check-out', 'Hours', 'Colleague'],
         xlWork: 'Work', xlSick: 'Sick', xlSwap: 'Swap', xlNone: '-',
+        xlSumDays: 'Total days', xlSumHours: 'Total hours', xlTargetDays: 'Required days', xlTargetHours: 'Required hours',
+        xlShort: 'Shortfall', xlOver: 'Surplus', xlHourU: 'h', xlDayU: 'd',
         footer: '© Hazem Saleh',
         weekdays: ['S', 'S', 'M', 'T', 'W', 'T', 'F'],
         monthYear: function (d) { return MONTHS_EN[d.getMonth()] + ' ' + d.getFullYear(); },
@@ -902,22 +906,50 @@ function xlsxBuild(sheetName, rows) {
     var enc = new TextEncoder();
     function colRef(n) { var s = ''; n++; while (n > 0) { var m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = (n - m) / 26 | 0; } return s; }
     function xmlEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-    var sheet = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>';
+    var styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+        + '<fonts count="3"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>'
+        + '<fills count="8"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'
+        + '<fill><patternFill patternType="solid"><fgColor rgb="FF0F766E"/><bgColor indexed="64"/></patternFill></fill>'
+        + '<fill><patternFill patternType="solid"><fgColor rgb="FFF1F5F4"/><bgColor indexed="64"/></patternFill></fill>'
+        + '<fill><patternFill patternType="solid"><fgColor rgb="FFFFF3C4"/><bgColor indexed="64"/></patternFill></fill>'
+        + '<fill><patternFill patternType="solid"><fgColor rgb="FFDCFCE7"/><bgColor indexed="64"/></patternFill></fill>'
+        + '<fill><patternFill patternType="solid"><fgColor rgb="FFFEE2E2"/><bgColor indexed="64"/></patternFill></fill>'
+        + '<fill><patternFill patternType="solid"><fgColor rgb="FFEDE9FE"/><bgColor indexed="64"/></patternFill></fill></fills>'
+        + '<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left/><right/><top><style val="thin"><color rgb="FF999999"/></style></top><bottom/><diagonal/></border></borders>'
+        + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+        + '<cellXfs count="7">'
+        + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+        + '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>'
+        + '<xf numFmtId="0" fontId="0" fillId="3" borderId="0" xfId="0" applyFill="1"/>'
+        + '<xf numFmtId="0" fontId="2" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"/>'
+        + '<xf numFmtId="0" fontId="0" fillId="5" borderId="0" xfId="0" applyFill="1"/>'
+        + '<xf numFmtId="0" fontId="0" fillId="6" borderId="0" xfId="0" applyFill="1"/>'
+        + '<xf numFmtId="0" fontId="0" fillId="7" borderId="0" xfId="0" applyFill="1"/>'
+        + '</cellXfs></styleSheet>';
+    var sheet = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+        + '<sheetViews><sheetView rightToLeft="1" workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
+        + '<cols><col min="1" max="1" width="12" customWidth="1"/><col min="2" max="2" width="11" customWidth="1"/><col min="3" max="3" width="22" customWidth="1"/><col min="4" max="4" width="11" customWidth="1"/><col min="5" max="6" width="10" customWidth="1"/><col min="7" max="7" width="9" customWidth="1"/><col min="8" max="8" width="16" customWidth="1"/></cols>'
+        + '<sheetData>';
     rows.forEach(function (row, r) {
-        sheet += '<row r="' + (r + 1) + '">';
+        var ht = r === 0 ? ' ht="22" customHeight="1"' : '';
+        sheet += '<row r="' + (r + 1) + '"' + ht + '>';
         row.forEach(function (cell, c) {
-            var ref = colRef(c) + (r + 1);
-            if (typeof cell === 'number') sheet += '<c r="' + ref + '"><v>' + cell + '</v></c>';
-            else sheet += '<c r="' + ref + '" t="inlineStr"><is><t xml:space="preserve">' + xmlEsc(cell) + '</t></is></c>';
+            var v = cell, st = 0;
+            if (cell && typeof cell === 'object') { v = cell.v; st = cell.s || 0; }
+            if (v === '' || v === null || v === undefined) { if (st) sheet += '<c r="' + colRef(c) + (r + 1) + '" s="' + st + '"/>'; return; }
+            var ref = colRef(c) + (r + 1), sa = st ? ' s="' + st + '"' : '';
+            if (typeof v === 'number') sheet += '<c r="' + ref + '"' + sa + '><v>' + v + '</v></c>';
+            else sheet += '<c r="' + ref + '" t="inlineStr"' + sa + '><is><t xml:space="preserve">' + xmlEsc(v) + '</t></is></c>';
         });
         sheet += '</row>';
     });
     sheet += '</sheetData></worksheet>';
     var files = {
-        '[Content_Types].xml': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
+        '[Content_Types].xml': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>',
         '_rels/.rels': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
-        'xl/workbook.xml': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="' + sheetName + '" sheetId="1" r:id="rId1"/></sheets></workbook>',
-        'xl/_rels/workbook.xml.rels': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
+        'xl/workbook.xml': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="' + xmlEsc(sheetName) + '" sheetId="1" r:id="rId1"/></sheets></workbook>',
+        'xl/_rels/workbook.xml.rels': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>',
+        'xl/styles.xml': styles,
         'xl/worksheets/sheet1.xml': sheet
     };
     var chunks = [], central = [], offset = 0;
@@ -946,19 +978,33 @@ function xlsxBuild(sheetName, rows) {
 }
 function exportCycle(t, lang, start, records) {
     var end = cycleEnd(start);
-    var rows = [t.xlHead];
+    var rows = [t.xlHead.map(function (h) { return { v: h, s: 1 }; })];
+    var workedD = 0, hoursSum = 0;
     for (var d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         var k = keyOf(d), r = records[k];
         var es = effShift(d);
         var shift = es ? shiftText(t, es) : t.xlNone;
         var status = t.xlNone, ci = '', co = '', hrs = '', col = '';
+        var onShift = es !== null;
         if (r) {
-            if (r.type === 'work') { status = t.xlWork; ci = r.checkIn || ''; co = r.checkOut || ''; var h = hoursOf(r.checkIn, r.checkOut); if (h !== null) hrs = h; }
+            if (r.type === 'work') { status = t.xlWork; ci = r.checkIn || ''; co = r.checkOut || ''; var h = hoursOf(r.checkIn, r.checkOut); if (h !== null) hrs = h;
+                if ((onShift || r.extra) && (r.checkIn || r.checkOut)) { workedD++; if (h !== null) hoursSum += h; } }
             else if (r.type === 'sick') status = t.xlSick;
-            else if (r.type === 'swap') { status = t.xlSwap; col = r.colleague || ''; }
+            else if (r.type === 'swap') { status = t.xlSwap; col = r.colleague || ''; if (onShift || r.extra) workedD++; }
         }
-        rows.push([k, t.dow(d), shift, status, ci, co, hrs, col]);
+        var rowStyle = (rows.length % 2 === 0) ? 2 : 0;
+        var stStyle = status === t.xlWork ? 4 : status === t.xlSick ? 5 : status === t.xlSwap ? 6 : rowStyle;
+        rows.push([{ v: k, s: rowStyle }, { v: t.dow(d), s: rowStyle }, { v: shift, s: rowStyle }, { v: status, s: stStyle }, { v: ci, s: rowStyle }, { v: co, s: rowStyle }, { v: hrs, s: rowStyle }, { v: col, s: rowStyle }]);
     }
+    hoursSum = Math.round(hoursSum * 10) / 10;
+    var targetH = Math.round(REQUIRED * shiftHours('day') * 10) / 10;
+    rows.push([]);
+    function tr(a, b, c, d) { return [{ v: a, s: 3 }, { v: b, s: 3 }, { v: c || '', s: 3 }, { v: d === undefined ? '' : d, s: 3 }]; }
+    rows.push(tr(t.xlSumDays, workedD, t.xlTargetDays, REQUIRED));
+    rows.push(tr(t.xlSumHours, hoursSum, t.xlTargetHours, targetH));
+    var diff = Math.round((targetH - hoursSum) * 10) / 10;
+    if (diff > 0) rows.push(tr(t.xlShort, fmtH(diff) + ' ' + t.xlHourU));
+    else if (diff < 0) rows.push(tr(t.xlOver, fmtH(-diff) + ' ' + t.xlHourU));
     var blob = xlsxBuild('Attendance', rows);
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
