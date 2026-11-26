@@ -259,10 +259,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial
 .att-todaycard .att-big { margin-top: 12px; }
 .att-punchrow { display: flex; gap: 10px; align-items: stretch; margin-top: 12px; }
 .att-punchrow .att-big { flex: 1; margin-top: 0; }
-.att-micbtn { width: 58px; min-height: 58px; border-radius: 14px; border: 1.5px solid var(--card2); background: var(--card); color: var(--accent); font-size: 22px; cursor: pointer; font-family: inherit; }
-.att-micbtn-on { background: var(--accent); color: var(--onaccent); animation: att-micpulse 1.2s ease-in-out infinite; }
-@keyframes att-micpulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
-.att-voicemsg { margin: 8px 0 0; font-size: 13px; color: var(--accent); line-height: 1.6; }
 .att-todaytitle { font-size: 17px; font-weight: 800; }
 .att-todaysub { font-size: 13px; color: var(--ink2); margin-top: 4px; }
 .att-sumcard .att-monthrow2 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -401,14 +397,6 @@ var STR = {
         curCycle: '↩ ارجع للشهر الحالي',
         cyclePast: function (w, req) { return 'الفترة دي خلصت — اشتغلت ' + w + ' من ' + req + ' يوم'; },
         cycleFuture: 'الفترة دي لسه جاية',
-        voiceDidIn: function (s) { return 'سمعت "' + s + '" — سجلت دخولك ✅'; },
-        voiceDidOut: function (s) { return 'سمعت "' + s + '" — سجلت خروجك ✅'; },
-        voiceAlreadyIn: 'دخولك مسجل قبل كده',
-        voiceAlreadyOut: 'خروجك مسجل قبل كده',
-        voiceNoMatch: function (s) { return (s ? 'سمعت "' + s + '" — ' : '') + 'مش فاهم، قول "تسجيل دخول" أو "تسجيل خروج"'; },
-        voiceNoMic: 'التعرف الصوتي مش متاح هنا — افتح التطبيق من سفاري واسمح بالمايك',
-        voiceNoNet: 'التعرف الصوتي محتاج نت',
-        voiceListening: 'بيسمعك… قول "تسجيل دخول" أو "تسجيل خروج"',
         calTitle: 'تقويم الفترة', legWorked: 'اشتغلت', legMissed: 'فاتك', legLeave: 'إجازة/مرضي/بدل',
         monthsTitle: 'الشهور: كام يوم شغل في كل شهر', monthsSub: 'الأيام محسوبة من جدولك. الشهور بتتجدد لوحدها مع الوقت، وتقدر تزود أكتر بالأزرار.',
         olderBtn: 'عرض شهور أقدم', needAll: 'لازم تحضر كل الأيام، اشتغلت ', overReq: 'زيادة عن المطلوب ', dayUnit: 'يوم', workedIs: '، اشتغلت ',
@@ -472,14 +460,6 @@ var STR = {
         curCycle: '↩ Back to current cycle',
         cyclePast: function (w, req) { return 'This cycle ended - worked ' + w + ' of ' + req + ' days'; },
         cycleFuture: 'This cycle has not started yet',
-        voiceDidIn: function (s) { return 'Heard "' + s + '" - checked you in ✅'; },
-        voiceDidOut: function (s) { return 'Heard "' + s + '" - checked you out ✅'; },
-        voiceAlreadyIn: 'You are already checked in',
-        voiceAlreadyOut: 'You are already checked out',
-        voiceNoMatch: function (s) { return (s ? 'Heard "' + s + '" - ' : '') + 'not sure - say "check in" or "check out"'; },
-        voiceNoMic: 'Voice recognition is not available here - open the app in Safari and allow the microphone',
-        voiceNoNet: 'Voice recognition needs an internet connection',
-        voiceListening: 'Listening... say "check in" or "check out"',
         calTitle: 'Cycle calendar', legWorked: 'Worked', legMissed: 'Missed', legLeave: 'Leave/Sick/Swap',
         monthsTitle: 'Months: work days per cycle', monthsSub: 'Days are counted from your schedule. New cycles appear automatically.',
         olderBtn: 'Show older months', needAll: 'All days required, worked ', overReq: 'Over required by ', dayUnit: 'days', workedIs: ', worked ',
@@ -530,7 +510,6 @@ var backupOpen = false;
 var settingsOpen = false;
 var tab = 'today';
 var monthsBack = 2;
-var voiceMsg = '', listening = false, recog = null;
 var moreOpen = false;
 var schedOpen = false;
 var iconOpen = false;
@@ -561,15 +540,6 @@ function buildCells(seg) {
     return cells;
 }
 
-/* ---------- voice punch ---------- */
-function parseVoice(said) {
-    var norm = ' ' + String(said || '').toLowerCase() + ' ';
-    var wantIn = /دخول/.test(norm) || /check\s*-\s*in|check\s+in|checkin/.test(norm);
-    var wantOut = /خروج/.test(norm) || /check\s*-\s*out|check\s+out|checkout/.test(norm);
-    if (wantIn && !wantOut) return 'in';
-    if (wantOut && !wantIn) return 'out';
-    return null;
-}
 /* ---------- actions ---------- */
 function saveRecord(key, r) {
     var next = {};
@@ -750,18 +720,10 @@ function render() {
         }
         var hasIn = record && record.checkIn, hasOut = record && record.checkOut;
         var h2 = '';
-        var SRc = window.SpeechRecognition || window.webkitSpeechRecognition;
-        var iosStandalone = /iP(hone|ad|od)/.test(navigator.userAgent || '') && (navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches));
-        var voiceOff = false;
-        try { voiceOff = !!localStorage.getItem('attendance.voiceoff.v1'); } catch (e0) {}
-        var voiceOK = !!SRc && !iosStandalone && !voiceOff;
         h2 += '<div class="att-punchrow">';
         if (!hasIn) h2 += '<button type="button" class="att-big" data-act="pin">' + esc(t.punchIn) + '</button>';
         else h2 += '<button type="button" class="att-big" data-act="pout">' + esc(t.punchOut) + '</button>';
-        if (voiceOK) h2 += '<button type="button" class="att-micbtn' + (listening ? ' att-micbtn-on' : '') + '" data-act="mic" aria-label="voice">🎤</button>';
         h2 += '</div>';
-        if (listening) h2 += '<div class="att-voicemsg">' + esc(t.voiceListening) + '</div>';
-        else if (voiceMsg) h2 += '<div class="att-voicemsg">' + esc(typeof voiceMsg === 'function' ? '' : voiceMsg) + '</div>';
         var hh = hoursOf(ed.ci || (record && record.checkIn), ed.co || (record && record.checkOut));
         if (hh !== null && !minimal) {
             var expH = shiftHours(cell.shift || 'day');
@@ -792,26 +754,6 @@ function render() {
         }
         return h2;
     }
-
-function handleVoice(said) {
-    listening = false;
-    var cmd = parseVoice(said);
-    var rec0 = openKey ? records[openKey] : undefined;
-    if (cmd === 'in') {
-        if (rec0 && rec0.type === 'work' && rec0.checkIn) { voiceMsg = t.voiceAlreadyIn; render(); return; }
-        voiceMsg = t.voiceDidIn(said);
-        var b = document.querySelector('[data-act="pin"]');
-        if (b) b.click(); else render();
-    } else if (cmd === 'out') {
-        if (rec0 && rec0.type === 'work' && rec0.checkOut) { voiceMsg = t.voiceAlreadyOut; render(); return; }
-        voiceMsg = t.voiceDidOut(said);
-        var b2 = document.querySelector('[data-act="pout"]');
-        if (b2) b2.click(); else render();
-    } else {
-        voiceMsg = t.voiceNoMatch(said);
-        render();
-    }
-}
 
     function todayCell() {
         var cell = null;
@@ -1106,37 +1048,6 @@ function handleVoice(said) {
             else if (act === 'iconsec') { iconOpen = !iconOpen; render(); }
             else if (act === 'settings') { settingsOpen = !settingsOpen; render(); }
             else if (act === 'more') { moreOpen = !moreOpen; render(); }
-            else if (act === 'mic') {
-                var SR2 = window.SpeechRecognition || window.webkitSpeechRecognition;
-                if (!SR2) return;
-                if (listening) { try { recog && recog.stop(); } catch (es) {} listening = false; render(); return; }
-                try {
-                    recog = new SR2();
-                    recog.lang = lang === 'ar' ? 'ar-EG' : 'en-US';
-                    recog.interimResults = false;
-                    recog.maxAlternatives = 1;
-                    recog.onresult = function (ev) {
-                        var said = (ev.results && ev.results[0] && ev.results[0][0] && ev.results[0][0].transcript) || '';
-                        handleVoice(said);
-                    };
-                    recog.onerror = function (ev2) {
-                        listening = false;
-                        var err = ev2 && ev2.error;
-                        if (err === 'not-allowed' || err === 'service-not-allowed') {
-                            voiceMsg = t.voiceNoMic;
-                            if (err === 'service-not-allowed') { try { localStorage.setItem('attendance.voiceoff.v1', '1'); } catch (e1) {} }
-                        }
-                        else if (err === 'network') voiceMsg = t.voiceNoNet;
-                        else voiceMsg = t.voiceNoMatch('');
-                        render();
-                    };
-                    recog.onend = function () { if (listening) { listening = false; render(); } };
-                    recog.start();
-                    listening = true; voiceMsg = '';
-                    setTimeout(function () { if (listening) { try { recog && recog.stop(); } catch (es2) {} } }, 10000);
-                    render();
-                } catch (e2) { listening = false; voiceMsg = t.voiceNoMatch(''); render(); }
-            }
             else if (act === 'older') { monthsBack += 3; render(); }
             else if (act === 'monthcard') {
                 var offN = Number(btn.getAttribute('data-off')) || 0;

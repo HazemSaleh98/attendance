@@ -1,4 +1,4 @@
-var CACHE = 'attendance-test-v1';
+var CACHE = 'attendance-test-v2';
 var ICON_CACHE = 'attendance-custom-icons';
 var ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
 self.addEventListener('install', function (e) {
